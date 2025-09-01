@@ -182,6 +182,11 @@
                 {% else %}
                     <div class="alert alert-info mt-4">Актуальных занятий сейчас нет.</div>
                 {% endif %}
+                {% if logo_path %}
+                    <div class="logo-container">
+                        <img src="{{ url_for('static', filename=logo_path) }}" alt="Логотип">
+                    </div>
+                {% endif %}
             </div>
 
             <!-- === ВИД ДЛЯ ГОРИЗОНТАЛЬНОГО ЭКРАНА (КАРУСЕЛЬ) === -->

@@ -39,6 +39,7 @@ class Config:
     # Показывать расписание в течение X минут после окончания последнего урока
     SHOW_AFTER_END_MIN = int(os.getenv('SHOW_AFTER_END_MIN', 30))  # 30 минут
 
+    # Выбор временного региона
     REGION_TIMEDELTA = int(os.getenv('REGION_TIMEDELTA', 7))  # +7 часов
 
     # Проверка, что переменные загрузились

@@ -44,13 +44,28 @@
     YANDEX_FILE_PATH="/путь/к/вашему/schedule.xlsx"
 
     # Остальные параметры (можно не указывать, будут использованы значения по умолчанию из config.py)
-    LOCAL_FILE_PATH="data/schedule.xlsx"
-    CACHE_DURATION=900
-    CAROUSEL_INTERVAL=30
-    SHOW_BEFORE_START_MIN=120
-    SHOW_AFTER_END_MIN=30
-    REGION_TIMEDELTA=11 # Смещение для Южно-Сахалинска (GMT+11)
-    LOGO_FILE_PATH="img/logo.png"
+    # Путь для сохранения скачанного файла.
+    # Если переменная не задана в .env, используется значение по умолчанию.
+    LOCAL_FILE_PATH = os.getenv('LOCAL_FILE_PATH', 'data/schedule.xlsx')
+
+    #
+    LOGO_FILE_PATH = os.getenv('LOGO_FILE_PATH', '/img/logo.png')
+
+    # Время жизни кэша в секундах.
+    CACHE_DURATION = int(os.getenv('CACHE_DURATION', 900))
+
+    # Интервал автоматического пролистывания карусели (в секундах)
+    CAROUSEL_INTERVAL = int(os.getenv('CAROUSEL_INTERVAL', 10))
+
+    # Показывать расписание за X минут до начала первого урока
+    SHOW_BEFORE_START_MIN = int(os.getenv('SHOW_BEFORE_START_MIN', 60))  # 1 час
+
+    # Показывать расписание в течение X минут после окончания последнего урока
+    SHOW_AFTER_END_MIN = int(os.getenv('SHOW_AFTER_END_MIN', 30))  # 30 минут
+
+    # Выбор временного региона
+    REGION_TIMEDELTA = int(os.getenv('REGION_TIMEDELTA', 7))  # +7 часов
+
 
     Запустите приложение:
 
