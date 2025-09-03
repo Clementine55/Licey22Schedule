@@ -31,13 +31,13 @@ class Config:
     CACHE_DURATION = int(os.getenv('CACHE_DURATION', 900))
 
     # Интервал автоматического пролистывания карусели (в секундах)
-    CAROUSEL_INTERVAL = int(os.getenv('CAROUSEL_INTERVAL', 10))
+    CAROUSEL_INTERVAL = int(os.getenv('CAROUSEL_INTERVAL', 3))
 
     # Показывать расписание за X минут до начала первого урока
-    SHOW_BEFORE_START_MIN = int(os.getenv('SHOW_BEFORE_START_MIN', 60))  # 1 час
+    SHOW_BEFORE_START_MIN = int(os.getenv('SHOW_BEFORE_START_MIN', 900))  # 1 час
 
     # Показывать расписание в течение X минут после окончания последнего урока
-    SHOW_AFTER_END_MIN = int(os.getenv('SHOW_AFTER_END_MIN', 30))  # 30 минут
+    SHOW_AFTER_END_MIN = int(os.getenv('SHOW_AFTER_END_MIN', 900))  # 30 минут
 
     # Выбор временного региона
     REGION_TIMEDELTA = int(os.getenv('REGION_TIMEDELTA', 7))  # +7 часов

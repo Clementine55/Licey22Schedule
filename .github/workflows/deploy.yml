@@ -1,0 +1,44 @@
+name: Deploy to Production Server
+
+# Запускать этот workflow при каждом push в ветку 'main'
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    # Использовать последнюю версию Ubuntu в качестве операционной системы для выполнения
+    runs-on: ubuntu-latest
+
+    steps:
+      # Шаг 1: Скачиваем код из репозитория
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Шаг 2: Подключаемся к серверу по SSH и выполняем команды
+      - name: Deploy to server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }} # IP сервера из секретов
+          username: ${{ secrets.SSH_USER }} # Пользователь из секретов
+          key: ${{ secrets.SSH_PRIVATE_KEY }} # Приватный ключ из секретов
+          script: |
+            # Переходим в директорию проекта
+            cd ${{ secrets.PROJECT_PATH }}
+            
+            # Скачиваем последние изменения из ветки main
+            echo "Pulling latest changes..."
+            git pull origin main
+            
+            # Активируем виртуальное окружение и устанавливаем зависимости
+            # Убедитесь, что у вас есть файл requirements.txt
+            echo "Installing dependencies..."
+            source venv/bin/activate
+            pip install -r requirements.txt
+            
+            # Перезапускаем сервис приложения через systemd
+            echo "Restarting application..."
+            sudo systemctl restart my-schedule-app
+            
+            echo "Deployment finished!"

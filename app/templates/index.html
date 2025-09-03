@@ -5,51 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Расписание Лицей 22</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
-        /* --- Адаптивный базовый шрифт --- */
-        html {
-            /* Шрифт будет плавно меняться от 12px на маленьких экранах до 16px на больших */
-            font-size: clamp(12px, 1.5vw, 16px);
-        }
-
         body {
             min-height: 100vh;
             margin: 0;
             background: linear-gradient(135deg, #0f172a, #1e293b, #334155);
             color: #e2e8f0;
             box-sizing: border-box;
-            /* Используем rem для адаптивного отступа */
-            padding-top: max(3rem, calc(50vh - 23rem));
         }
 
-        .header-info {
-            position: fixed;
-            top: 1.5rem;
-            left: 3rem;
-            right: 3rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            /* Используем rem для адаптивного шрифта */
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #cbd5e1;
-            z-index: 1000;
-        }
-
-        .container-fluid {
-            padding-top: 6rem; /* Адаптивный отступ */
-            padding-left: 2rem;
-            padding-right: 2rem;
-        }
-
-        h1.main-title {
-            font-weight: bold;
-            margin-bottom: 2.2rem !important;
-            font-size: 4rem;
-        }
-
+        /* --- ПЕРЕКЛЮЧАТЕЛЬ РЕЖИМОВ --- */
         .portrait-view { display: none; }
         .landscape-view { display: block; }
         @media (orientation: portrait) {
@@ -57,169 +22,209 @@
             .landscape-view { display: none; }
         }
 
-        @media (max-width: 768px) {
-            .header-info {
-                display: none;
-            }
-            .container-fluid {
-                padding-top: 1rem;
-            }
-            h1.main-title {
-                font-size: 2.5rem; /* Уменьшаем заголовок на мобильных */
-            }
+        /* --- СТИЛИ ДЛЯ ПОРТРЕТНОГО РЕЖИМА --- */
+        .portrait-view {
+             padding-bottom: 3rem;
+             padding-top: 5rem; /* Базовый отступ сверху */
         }
-
-        .card {
+        .portrait-view .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .portrait-view .logo-img {
+            max-width: 250px;
+            height: auto;
+            opacity: 0.9;
+            flex-shrink: 0;
+        }
+        .portrait-view .header-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            font-weight: bold;
+            color: #cbd5e1;
+            text-align: right;
+            font-size: 1.2rem;
+            line-height: 1.4;
+        }
+        #selection-container {
             background-color: rgba(15, 23, 42, 0.75);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
         }
-        .card-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 3.5rem;
-        }
-        .card-header h4 {
-            margin-bottom: 0;
-            font-size: 1.5rem;
-        }
-        .table {
-            --bs-table-bg: transparent;
-            --bs-table-striped-bg: rgba(255, 255, 255, 0.03);
-            --bs-table-border-color: rgba(255, 255, 255, 0.1);
-        }
-        .table td, .table th {
-            font-size: 1.1rem;
-            vertical-align: middle;
-        }
-        .accordion-item {
+        .schedule-day-card {
             background-color: rgba(30, 41, 59, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
         }
-        .accordion-button { background-color: rgba(15, 23, 42, 0.75); }
-        .accordion-button:not(.collapsed) { background-color: #1e293b; }
-        .carousel-item .table-responsive {
-            max-height: 80vh;
-            overflow-y: auto;
+        .schedule-day-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center; /* Центрируем день недели */
         }
-        .lesson-num-col, .time-col {
-            text-align: center;
-            white-space: nowrap;
-            vertical-align: middle;
+        .portrait-view .table {
+            --bs-table-bg: transparent;
+            --bs-table-striped-bg: rgba(255, 255, 255, 0.03);
+            --bs-table-border-color: transparent;
         }
-        .subject-cell {
-            padding-left: 1.5rem !important;
-            vertical-align: middle;
+        .portrait-view .table td, .portrait-view .table th { vertical-align: middle; }
+        .portrait-view .lesson-num-col { width: 10%; text-align: center; }
+        .portrait-view .time-col { width: 30%; text-align: center; }
+
+        /* Адаптивность для маленьких телефонов */
+        @media (max-width: 450px) {
+            .portrait-view .header-info {
+                display: none; /* Скрываем дату/время */
+            }
+             .portrait-view .header {
+                justify-content: center; /* Центрируем логотип */
+             }
         }
-        .portrait-view .lesson-num-col { width: 13%; }
-        .portrait-view .time-col { width: 27%; }
+
+
+        /* --- СТИЛИ ДЛЯ ГОРИЗОНТАЛЬНОГО РЕЖИМА --- */
+        .landscape-view {
+            min-height: 100vh;
+            padding-top: max(3rem, calc(50vh - 20rem)); /* Динамическое центрирование */
+        }
+        .landscape-view .header-info {
+            position: fixed;
+            top: 1.5rem;
+            left: 3rem;
+            right: 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #cbd5e1;
+            z-index: 1000;
+        }
+        .landscape-view .main-title {
+            font-weight: bold;
+            margin-bottom: 2.0rem !important;
+            font-size: 4rem;
+        }
+        .landscape-view .card {
+            background-color: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .landscape-view .card-header {
+            background-color: rgba(30, 41, 59, 0.8);
+            font-weight: bold;
+            padding: 0.75rem 1rem;
+        }
         .landscape-view .table {
-            table-layout: fixed;
-            width: 100%;
+            --bs-table-bg: transparent;
+            --bs-table-striped-bg: rgba(255, 255, 255, 0.03);
+            --bs-table-border-color: rgba(255, 255, 255, 0.1); /* <- ВОТ ЭТА СТРОКА */
         }
-        .landscape-view .lesson-num-col { width: 5%; }
-        .landscape-view .time-col { width: 15%; }
-        .logo-container {
+        .landscape-view .logo-container {
             position: fixed;
             bottom: 40px;
             left: 50px;
             z-index: 1000;
         }
-        .logo-container img {
-            max-width: 300px;
-            height: auto;
-            opacity: 0.9;
+        .landscape-view .logo-container img { max-width: 300px; }
+
+         /* Скрываем шапку на мобильных в горизонтальном режиме */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .landscape-view .header-info {
+                display: none;
+            }
         }
     </style>
+
 </head>
 <body>
-    <div class="header-info">
-        <span id="live-time">00:00:00</span>
-        <span id="current-date">{{ current_date }}</span>
-    </div>
 
-    <div class="container-fluid">
-        {% if schedule_for_today and active_day_name %}
-            <h1 class="text-center main-title">{{ active_day_name }}</h1>
-
-            <!-- === ВИД ДЛЯ ВЕРТИКАЛЬНОГО ЭКРАНА (СПИСКИ) === -->
-            <div class="portrait-view">
-                {% if schedule_for_today.portrait_view %}
-                    <div class="accordion" id="accordion-portrait">
-                        {% for class_name, class_data in schedule_for_today.portrait_view.items() %}
-                            <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-portrait-{{ class_name.replace(' ', '-') }}">
-                                        <strong>{{ class_name }}</strong>
-                                    </button>
-                                </h2>
-                                <div id="collapse-portrait-{{ class_name.replace(' ', '-') }}" class="accordion-collapse collapse" data-bs-parent="#accordion-portrait">
-                                    <div class="accordion-body p-0">
-                                        <table class="table table-striped mb-0">
-                                            <thead>
-                                                <tr>
-                                                    <th class="lesson-num-col">№</th>
-                                                    <th class="time-col">Время</th>
-                                                    <th class="subject-cell">Предмет</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for lesson in class_data.lessons %}
-                                                <tr>
-                                                    <td class="lesson-num-col">{{ lesson.урок }}</td>
-                                                    <td class="time-col">{{ lesson.время }}</td>
-                                                    <td class="subject-cell">{{ lesson.предмет }}</td>
-                                                </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="alert alert-info mt-4">Актуальных занятий сейчас нет.</div>
-                {% endif %}
+    <!-- ======================================================= -->
+    <!-- === ПОРТРЕТНЫЙ РЕЖИМ (Выбор класса, вся неделя)      === -->
+    <!-- ======================================================= -->
+    <div class="portrait-view">
+        <div class="container mt-4">
+            <header class="header">
                 {% if logo_path %}
-                    <div class="logo-container">
-                        <img src="{{ url_for('static', filename=logo_path) }}" alt="Логотип">
-                    </div>
+                    <img src="{{ url_for('static', filename=logo_path) }}" alt="Логотип" class="logo-img">
                 {% endif %}
+                <div class="header-info">
+                    <span id="current-date-portrait">{{ current_date }}</span>
+                    <span id="live-time-portrait">00:00:00</span>
+                </div>
+            </header>
+
+            <div id="selection-container" class="p-4 mb-4">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label for="grade-selector" class="form-label">1. Выберите параллель</label>
+                        <select id="grade-selector" class="form-select form-select-lg">
+                            <option selected disabled>--</option>
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <label for="class-selector" class="form-label">2. Выберите класс</label>
+                        <select id="class-selector" class="form-select form-select-lg" disabled>
+                            <option selected disabled>--</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button id="reset-button" class="btn btn-secondary w-100">Сбросить</button>
+                    </div>
+                </div>
             </div>
 
-            <!-- === ВИД ДЛЯ ГОРИЗОНТАЛЬНОГО ЭКРАНА (КАРУСЕЛЬ) === -->
-            <div class="landscape-view">
-                {% if schedule_for_today.landscape_view %}
+            <div id="schedule-display" class="mt-4">
+                 <div class="alert alert-info">Выберите параллель и класс, чтобы увидеть расписание.</div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ======================================================= -->
+    <!-- === ГОРИЗОНТАЛЬНЫЙ РЕЖИМ (Карусель, только сегодня)  === -->
+    <!-- ======================================================= -->
+    <div class="landscape-view">
+        <div class="header-info">
+            <span id="live-time-landscape">00:00:00</span>
+            <span id="current-date-landscape">{{ current_date }}</span>
+        </div>
+        <div class="container-fluid">
+            {% if schedule_for_today and active_day_name %}
+                <h1 class="text-center main-title">{{ active_day_name }}</h1>
+                {% if schedule_for_today.landscape_view and schedule_for_today.landscape_view|length > 0 %}
                     <div id="scheduleCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-pause="false" data-bs-interval="{{ carousel_interval * 1000 }}">
                         <div class="carousel-inner">
                             {% for grade_key, grade_data in schedule_for_today.landscape_view.items() %}
                                 {% if grade_data and grade_data.schedule_rows %}
                                 <div class="carousel-item {% if loop.first %}active{% endif %}">
                                     <div class="card">
-                                        <div class="card-header">
-                                            <h4>{{ grade_key }}</h4>
-                                        </div>
+                                        <div class="card-header"><h4 class="m-0 text-center">{{ grade_key }}</h4></div>
                                         <div class="card-body p-0">
-                                            <div class="table-responsive">
+                                            <div class="table-responsive" style="max-height: 80vh; overflow-y: auto;">
                                                 <table class="table table-bordered table-striped mb-0">
                                                     <thead>
                                                         <tr>
-                                                            <th class="lesson-num-col">№</th>
-                                                            <th class="time-col">Время</th>
+                                                            <th style="width: 5%;" class="text-center">№</th>
+                                                            <th style="width: 15%;" class="text-center">Время</th>
                                                             {% for class_name in grade_data.class_names %}
-                                                                <th class="subject-cell">{{ class_name }}</th>
+                                                                <th>{{ class_name }}</th>
                                                             {% endfor %}
                                                         </tr>
                                                     </thead>
                                                     <tbody>
                                                         {% for row in grade_data.schedule_rows %}
                                                         <tr>
-                                                            <td class="lesson-num-col">{{ row['урок'] }}</td>
-                                                            <td class="time-col">{{ row['время'] }}</td>
+                                                            <td class="text-center">{{ row['урок'] }}</td>
+                                                            <td class="text-center">{{ row['время'] }}</td>
                                                             {% for class_name in grade_data.class_names %}
-                                                                <td class="subject-cell">{{ row.предметы.get(class_name, '') }}</td>
+                                                                <td>{{ row.предметы.get(class_name, '') }}</td>
                                                             {% endfor %}
                                                         </tr>
                                                         {% endfor %}
@@ -236,42 +241,131 @@
                 {% else %}
                     <div class="alert alert-info mt-4">Актуальных занятий сейчас нет.</div>
                 {% endif %}
-
-                {% if logo_path %}
+            {% else %}
+                <div class="alert alert-warning mt-4" role="alert">
+                    На сегодня расписания нет или оно не загружено.
+                </div>
+            {% endif %}
+            {% if logo_path %}
                 <div class="logo-container">
                     <img src="{{ url_for('static', filename=logo_path) }}" alt="Логотип">
                 </div>
-                {% endif %}
-
-            </div>
-        {% else %}
-            <div class="alert alert-warning mt-4" role="alert">
-                На сегодня расписания нет или оно не загружено.
-            </div>
-        {% endif %}
+            {% endif %}
+        </div>
     </div>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // --- LIVE CLOCK SCRIPT ---
-        function updateTime() {
-            const timeEl = document.getElementById('live-time');
-            if (timeEl) {
-                const now = new Date();
-                const hours = String(now.getHours()).padStart(2, '0');
-                const minutes = String(now.getMinutes()).padStart(2, '0');
-                const seconds = String(now.getSeconds()).padStart(2, '0');
-                timeEl.textContent = `${hours}:${minutes}:${seconds}`;
+        // --- ОБЩИЙ СКРИПТ ---
+        const fullSchedule = {{ full_schedule | tojson }};
+
+        // --- ЛОГИКА ДЛЯ ПОРТРЕТНОГО РЕЖИМА ---
+        const gradeSelector = document.getElementById('grade-selector');
+        const classSelector = document.getElementById('class-selector');
+        const scheduleDisplay = document.getElementById('schedule-display');
+        const resetButton = document.getElementById('reset-button');
+
+        function populateGradeSelector() {
+            const grades = new Set();
+            if (fullSchedule) {
+                for (const day in fullSchedule) {
+                    if (fullSchedule[day] && fullSchedule[day].portrait_view) {
+                        for (const className in fullSchedule[day].portrait_view) {
+                            const gradeMatch = className.match(/^\d+/);
+                            if (gradeMatch) grades.add(gradeMatch[0]);
+                        }
+                    }
+                }
             }
+            Array.from(grades).sort((a, b) => parseInt(a) - parseInt(b)).forEach(grade => {
+                const option = new Option(`${grade}-е классы`, grade);
+                gradeSelector.add(option);
+            });
+        }
+
+        function populateClassSelector(selectedGrade) {
+            classSelector.innerHTML = '<option selected disabled>--</option>';
+            classSelector.disabled = true;
+            if (!selectedGrade || !fullSchedule) return;
+
+            const classNames = new Set();
+            for (const day in fullSchedule) {
+                 if (fullSchedule[day] && fullSchedule[day].portrait_view) {
+                    for (const className in fullSchedule[day].portrait_view) {
+                        if (className.startsWith(selectedGrade + ' ')) {
+                            classNames.add(className);
+                        }
+                    }
+                }
+            }
+            Array.from(classNames).sort().forEach(name => {
+                const option = new Option(name, name);
+                classSelector.add(option);
+            });
+            classSelector.disabled = false;
+        }
+
+        function displayWeekSchedule(selectedClass) {
+            if (!selectedClass) {
+                scheduleDisplay.innerHTML = '<div class="alert alert-info">Выберите параллель и класс.</div>';
+                return;
+            }
+            let html = '<div class="row g-4">';
+            const daysOrder = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
+
+            for (const day of daysOrder) {
+                const dayData = fullSchedule[day]?.portrait_view[selectedClass];
+                html += '<div class="col-12 col-lg-6"><div class="schedule-day-card">';
+                html += `<div class="schedule-day-header">${day}</div>`;
+                if (dayData && dayData.lessons.some(l => l.предмет !== '—')) {
+                    html += '<table class="table table-striped mb-0">';
+                    html += `<thead><tr><th class="lesson-num-col">№</th><th class="time-col">Время</th><th>Предмет</th></tr></thead><tbody>`;
+                    dayData.lessons.forEach(lesson => {
+                        html += `<tr><td class="lesson-num-col">${lesson.урок}</td><td class="time-col">${lesson.время}</td><td>${lesson.предмет}</td></tr>`;
+                    });
+                    html += '</tbody></table>';
+                } else {
+                    html += '<div class="p-4 text-center">В этот день занятий нет.</div>';
+                }
+                html += '</div></div>';
+            }
+            html += '</div>';
+            scheduleDisplay.innerHTML = html;
+        }
+
+        gradeSelector.addEventListener('change', (e) => {
+            populateClassSelector(e.target.value);
+            scheduleDisplay.innerHTML = '<div class="alert alert-info">Теперь выберите класс.</div>';
+        });
+        classSelector.addEventListener('change', (e) => { displayWeekSchedule(e.target.value); });
+        resetButton.addEventListener('click', () => {
+            gradeSelector.selectedIndex = 0;
+            classSelector.innerHTML = '<option selected disabled>--</option>';
+            classSelector.disabled = true;
+            scheduleDisplay.innerHTML = '<div class="alert alert-info">Выберите параллель и класс.</div>';
+        });
+
+        // --- ОБЩИЕ ФУНКЦИИ ---
+        function updateTime() {
+            const timePortrait = document.getElementById('live-time-portrait');
+            const timeLandscape = document.getElementById('live-time-landscape');
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            if (timePortrait) timePortrait.textContent = `${hours}:${minutes}:${seconds}`;
+            if (timeLandscape) timeLandscape.textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        setInterval(() => { window.location.reload(true); }, {{ refresh_interval }} * 1000);
+
+        // --- ИНИЦИАЛИЗАЦИЯ ---
+        if (gradeSelector) { // Запускаем логику портретного режима только если элементы существуют
+             populateGradeSelector();
         }
         updateTime();
         setInterval(updateTime, 1000);
-
-        // --- AUTO-REFRESH SCRIPT ---
-        setInterval(() => {
-            console.log('Выполняется периодическое обновление страницы...');
-            window.location.reload(true);
-        }, {{ refresh_interval }} * 1000);
     </script>
 </body>
 </html>
