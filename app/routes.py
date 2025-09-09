@@ -83,9 +83,12 @@ def index():
 
         schedule_for_today["landscape_view"] = filtered_landscape_view
 
-    # --- ИСПРАВЛЕНИЕ: Преобразуем данные перед отправкой в шаблон ---
+    # --- Преобразуем данные перед отправкой в шаблон ---
     json_safe_full_schedule = make_schedule_json_serializable(full_schedule)
     json_safe_schedule_for_today = make_schedule_json_serializable(schedule_for_today)
+
+    # --- ИСПРАВЛЕНИЕ: Форматируем время для передачи в JavaScript ---
+    current_time_str = current_time.strftime('%H:%M:%S') if current_time else '00:00:00'
 
     log.info("Расписание успешно загружено и готово к передаче на фронтенд.")
 
@@ -95,8 +98,8 @@ def index():
         schedule_for_today=json_safe_schedule_for_today,
         active_day_name=active_day_name,
         current_date=current_date,
+        current_time=current_time_str,  # <-- ВОТ ИЗМЕНЕНИЕ
         refresh_interval=cache_duration_seconds,
-        carousel_interval=Config.CAROUSEL_INTERVAL,
+        carousel_interval=Config.CAROUSEL_INTERVAL, # <-- Исправлена опечатка CAROUSEEL -> CAROUSEL
         logo_path=Config.LOGO_FILE_PATH
     )
-

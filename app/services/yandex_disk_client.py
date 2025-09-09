@@ -21,8 +21,9 @@ def download_schedule_file(local_path):
         # Шаг 1: Скачиваем во временный файл
         y.download(Config.YANDEX_FILE_PATH, temp_path)
 
-        # Шаг 2: Если скачивание успешно, переименовываем временный файл в основной
-        os.rename(temp_path, local_path)
+        # Шаг 2: Если скачивание успешно, атомарно заменяем старый файл новым.
+        # os.replace() работает кросс-платформенно и перезаписывает файл назначения, если он существует.
+        os.replace(temp_path, local_path)
 
         log.info(f"Файл '{Config.YANDEX_FILE_PATH}' успешно скачан и обновлен в '{local_path}'")
         return True
@@ -50,4 +51,3 @@ def download_schedule_file(local_path):
                 os.remove(temp_path)
             except OSError as e:
                 log.error(f"Не удалось удалить временный файл {temp_path}: {e}")
-

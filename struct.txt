@@ -2,18 +2,25 @@ school_schedule_app/
 ├── app/
 │   ├── __init__.py           # Инициализация Flask приложения
 │   ├── routes.py             # Определение URL-адресов (маршрутов)
+│   │
 │   ├── services/
 │   │   ├── __init__.py
 │   │   ├── yandex_disk_client.py # Логика для работы с API Яндекс Диска
 │   │   ├── data_validator.py     # Логика для обработки данных
 │   │   ├── time_service.py       # Парсинг данных времени и даты
 │   │   └── schedule_parser.py    # Логика для чтения и обработки XLSX файла
+│   │
 │   ├── static/
 │   │   ├── img/
-│   │       └── logo.png       # Логотип для вашего веб-интерфейса
+│   │   │   └── logo.png       # Логотип для вашего веб-интерфейса
+│   │   │
+│   │   ├── js/
+│   │   │   └── bootstrap.bundle.min.js
 │   │   │
 │   │   └── css/
-│   │       └── style.css       # Стили для вашего веб-интерфейса
+│   │       ├── style.css       # Стили для вашего веб-интерфейса
+│   │       └── bootstrap.min.css
+│   │
 │   └── templates/
 │       ├── base.html           # Базовый HTML-шаблон (шапка, подвал)
 │       └── index.html          # Главная страница для отображения расписания

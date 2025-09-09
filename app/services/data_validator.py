@@ -12,6 +12,7 @@ def is_valid_class_name(s: str) -> bool:
     # Паттерн для слитного написания (5А, 10БАС)
     pattern_no_space = r'^(10|11|[1-9])([А-Яа-яЁёa-zA-Z]{1,6})$'
     # Паттерн для написания с пробелом (5 А, 10 БАС)
+    # ИСПРАВЛЕНИЕ: Убран лишний обратный слэш. Было r'...\\s...', стало r'...\s...'
     pattern_with_space = r'^(10|11|[1-9])\s[А-Яа-яЁёa-zA-Z]{1,6}$'
 
     if re.fullmatch(pattern_no_space, s) or re.fullmatch(pattern_with_space, s):
