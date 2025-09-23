@@ -14,6 +14,11 @@
             box-sizing: border-box;
         }
 
+        #live-time-portrait,
+        #live-time-landscape {
+            font-variant-numeric: tabular-nums;
+        }
+
         /* --- ПЕРЕКЛЮЧАТЕЛЬ РЕЖИМОВ --- */
         .portrait-view { display: none; }
         .landscape-view { display: block; }
@@ -35,7 +40,7 @@
             margin-bottom: 1.5rem;
         }
         .portrait-view .logo-img {
-            max-width: 250px;
+            max-width: 300px;
             height: auto;
             opacity: 0.9;
             flex-shrink: 0;
@@ -47,8 +52,9 @@
             font-weight: bold;
             color: #cbd5e1;
             text-align: right;
-            font-size: 1.2rem;
+            font-size: 2.2rem;
             line-height: 1.4;
+
         }
         #selection-container {
             background-color: rgba(15, 23, 42, 0.75);
@@ -78,7 +84,7 @@
         .portrait-view .time-col { width: 30%; text-align: center; }
 
         /* Адаптивность для маленьких телефонов */
-        @media (max-width: 450px) {
+        @media (max-width: 750px) {
             .portrait-view .header-info {
                 display: none; /* Скрываем дату/время */
             }
@@ -122,9 +128,17 @@
             padding: 0.75rem 1rem;
         }
         .landscape-view .table {
+            table-layout: fixed; /* <-- ВОТ ГЛАВНОЕ ИЗМЕНЕНИЕ */
+            width: 100%;
             --bs-table-bg: transparent;
             --bs-table-striped-bg: rgba(255, 255, 255, 0.03);
-            --bs-table-border-color: rgba(255, 255, 255, 0.1); /* <- ВОТ ЭТА СТРОКА */
+            --bs-table-border-color: rgba(255, 255, 255, 0.1);
+        }
+        .landscape-view .table td,
+        .landscape-view .table th {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .landscape-view .logo-container {
             position: fixed;
@@ -134,11 +148,48 @@
         }
         .landscape-view .logo-container img { max-width: 300px; }
 
-         /* Скрываем шапку на мобильных в горизонтальном режиме */
-        @media (max-width: 768px) and (orientation: landscape) {
-            .landscape-view .header-info {
+        /* Адаптация для мобильных устройств в горизонтальном режиме */
+        @media (max-height: 500px) and (orientation: landscape) {
+
+            /* 1. Скрываем всё лишнее: заголовок, время/дату и логотип */
+            .landscape-view .main-title,
+            .landscape-view .header-info,
+            .landscape-view .logo-container {
                 display: none;
             }
+
+            /* 2. Убираем лишние отступы у основного контейнера, чтобы таблица заняла всё место */
+            .landscape-view {
+                padding-top: 1rem; /* Оставляем небольшой отступ сверху */
+                padding-bottom: 1rem;
+                min-height: auto; /* Убираем требование минимальной высоты */
+                display: flex; /* Используем flex для центрирования */
+                align-items: center;
+            }
+
+            /* 3. Немного уменьшаем общий масштаб всего интерфейса */
+            /* Стандартный размер шрифта ~16px. Уменьшая его, мы пропорционально уменьшаем все rem-элементы */
+            html {
+                font-size: 13px;
+            }
+
+            /* 4. Увеличиваем максимальную высоту таблицы, чтобы она занимала больше места на экране */
+            .landscape-view .table-responsive {
+                /* Занимает почти всю высоту экрана, за вычетом наших небольших отступов */
+                max-height: calc(100vh - 2rem);
+            }
+        }
+
+        /* --- СТИЛИ ПОДСВЕТКИ --- */
+        .current-lesson {
+            background-color: rgba(53, 230, 118, 0.2) !important; /* Салатовый */
+            border-left: 4px solid #33a15c !important;
+            border-right: 4px solid #33a15c !important;
+        }
+        .next-lesson {
+            background-color: rgba(137, 132, 219, 0.15) !important; /* Лиловый */
+            border-left: 4px solid #5d5a8f !important;
+            border-right: 4px solid #5d5a8f !important;
         }
     </style>
 
@@ -220,7 +271,7 @@
                                                     </thead>
                                                     <tbody>
                                                         {% for row in grade_data.schedule_rows %}
-                                                        <tr>
+                                                        <tr data-time-start="{{ row['время'] }}">
                                                             <td class="text-center">{{ row['урок'] }}</td>
                                                             <td class="text-center">{{ row['время'] }}</td>
                                                             {% for class_name in grade_data.class_names %}
@@ -259,6 +310,7 @@
     <script>
         // --- ОБЩИЙ СКРИПТ ---
         const fullSchedule = {{ full_schedule | tojson }};
+        const activeDayName = '{{ active_day_name }}';
 
         // --- ЛОГИКА ДЛЯ ПОРТРЕТНОГО РЕЖИМА ---
         const gradeSelector = document.getElementById('grade-selector');
@@ -266,7 +318,7 @@
         const scheduleDisplay = document.getElementById('schedule-display');
         const resetButton = document.getElementById('reset-button');
 
-        if (gradeSelector) { // Запускаем логику портретного режима только если элементы существуют
+        if (gradeSelector) {
             function populateGradeSelector() {
                 const grades = new Set();
                 if (fullSchedule) {
@@ -323,7 +375,7 @@
                         html += '<table class="table table-striped mb-0">';
                         html += `<thead><tr><th class="lesson-num-col">№</th><th class="time-col">Время</th><th>Предмет</th></tr></thead><tbody>`;
                         dayData.lessons.forEach(lesson => {
-                            html += `<tr><td class="lesson-num-col">${lesson.урок}</td><td class="time-col">${lesson.время}</td><td>${lesson.предмет}</td></tr>`;
+                            html += `<tr data-time-start="${lesson.время}"><td class="lesson-num-col">${lesson.урок}</td><td class="time-col">${lesson.время}</td><td>${lesson.предмет}</td></tr>`;
                         });
                         html += '</tbody></table>';
                     } else {
@@ -333,6 +385,7 @@
                 }
                 html += '</div>';
                 scheduleDisplay.innerHTML = html;
+                highlightCurrentLesson();
             }
 
             gradeSelector.addEventListener('change', (e) => {
@@ -347,21 +400,75 @@
                 scheduleDisplay.innerHTML = '<div class="alert alert-info">Выберите параллель и класс.</div>';
             });
 
-            // Инициализация
             populateGradeSelector();
         }
 
-        // --- ОБНОВЛЕННАЯ ЛОГИКА ЧАСОВ ---
-
-        // 1. Получаем стартовое время, которое передал сервер
+        // --- ЛОГИКА ЧАСОВ И ПОДСВЕТКИ ---
         const serverTimeString = '{{ current_time }}';
         let [hours, minutes, seconds] = serverTimeString.split(':').map(Number);
 
         const timePortrait = document.getElementById('live-time-portrait');
         const timeLandscape = document.getElementById('live-time-landscape');
 
+        function parseTimeToMinutes(timeStr) {
+            if (!timeStr || typeof timeStr !== 'string') return null;
+            const match = timeStr.match(/(\d{1,2})[.:](\d{2})/);
+            if (match) {
+                const h = parseInt(match[1], 10);
+                const m = parseInt(match[2], 10);
+                if (!isNaN(h) && !isNaN(m)) return h * 60 + m;
+            }
+            return null;
+        }
+
+        function highlightCurrentLesson() {
+            const LESSON_DURATION_MIN = 40;
+            const currentTotalMinutes = hours * 60 + minutes;
+
+            const processTable = (table) => {
+                const lessonRows = Array.from(table.querySelectorAll('tbody tr[data-time-start]'));
+                const lessons = lessonRows
+                    .map(row => ({
+                        element: row,
+                        startMinutes: parseTimeToMinutes(row.dataset.timeStart)
+                    }))
+                    .filter(lesson => lesson.startMinutes !== null)
+                    .sort((a, b) => a.startMinutes - b.startMinutes);
+
+                lessons.forEach(lesson => lesson.element.classList.remove('current-lesson', 'next-lesson'));
+
+                let currentLessonFound = false;
+                for (const lesson of lessons) {
+                    const endMinutes = lesson.startMinutes + LESSON_DURATION_MIN;
+                    if (currentTotalMinutes >= lesson.startMinutes && currentTotalMinutes < endMinutes) {
+                        lesson.element.classList.add('current-lesson');
+                        currentLessonFound = true;
+                        break;
+                    }
+                }
+
+                if (!currentLessonFound) {
+                    for (const lesson of lessons) {
+                        if (lesson.startMinutes > currentTotalMinutes) {
+                            lesson.element.classList.add('next-lesson');
+                            break;
+                        }
+                    }
+                }
+            };
+
+            document.querySelectorAll('#scheduleCarousel table').forEach(processTable);
+
+            document.querySelectorAll('.schedule-day-card').forEach(card => {
+                const header = card.querySelector('.schedule-day-header');
+                if (header && header.textContent.trim() === activeDayName) {
+                    const table = card.querySelector('table');
+                    if (table) processTable(table);
+                }
+            });
+        }
+
         function updateClock() {
-            // 2. Увеличиваем секунды на 1
             seconds++;
             if (seconds >= 60) {
                 seconds = 0;
@@ -369,32 +476,30 @@
                 if (minutes >= 60) {
                     minutes = 0;
                     hours++;
-                    if (hours >= 24) {
-                        hours = 0;
-                    }
+                    if (hours >= 24) hours = 0;
                 }
             }
 
-            // 3. Форматируем для вывода (добавляем ведущие нули)
             const fHours = String(hours).padStart(2, '0');
             const fMinutes = String(minutes).padStart(2, '0');
             const fSeconds = String(seconds).padStart(2, '0');
             const timeString = `${fHours}:${fMinutes}:${fSeconds}`;
 
-            // 4. Обновляем время на странице
             if (timePortrait) timePortrait.textContent = timeString;
             if (timeLandscape) timeLandscape.textContent = timeString;
+
+            // Подсветка обновляется вместе с часами
+            highlightCurrentLesson();
         }
 
-        // Периодически перезагружаем страницу для синхронизации с сервером
         setInterval(() => { window.location.reload(true); }, {{ refresh_interval }} * 1000);
 
-        // --- ИНИЦИАЛИЗАЦИЯ ЧАСОВ ---
-        // Вызываем один раз, чтобы отобразить время сразу, без задержки в 1 секунду
-        updateClock();
-        // Запускаем "тиканье" часов каждую секунду
-        setInterval(updateClock, 1000);
+        // --- ИНИЦИАЛИЗАЦИЯ ---
+        updateClock(); // Первый вызов, чтобы время и подсветка появились сразу
+        setInterval(updateClock, 1000); // Запускаем ежесекундное обновление
+
     </script>
 </body>
 </html>
+
 
