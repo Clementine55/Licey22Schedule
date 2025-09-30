@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="alert alert-danger text-center" role="alert">
-  <h4 class="alert-heading">Произошла ошибка!</h4>
-  <p>{{ message }}</p>
-  <hr>
-  <p class="mb-0">Пожалуйста, попробуйте обновить страницу позже или обратитесь к администратору.</p>
-</div>
+    <div class="alert alert-danger text-center mt-5" role="alert" style="background-color: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.4);">
+        <h4 class="alert-heading" style="color: #f8d7da;">Произошла ошибка!</h4>
+        <p style="color: #f8d7da;">{{ message }}</p>
+        <hr style="border-top: 1px solid rgba(255, 255, 255, 0.2);">
+        <p class="mb-0" style="color: #f8d7da; opacity: 0.8;">Пожалуйста, попробуйте обновить страницу позже или обратитесь к администратору.</p>
+    </div>
 {% endblock %}

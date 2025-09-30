@@ -18,11 +18,56 @@ def get_shift_from_time(time_str: str) -> str:
 
 
 def _get_shift_from_sheet_name(sheet_name: str) -> str or None:
-    if '(1 смена)' in sheet_name.lower():
+    clean_name = str(sheet_name).strip().lower()
+    if re.search(r'\(1\s?смена\)', clean_name):
         return "1 смена"
-    if '(2 смена)' in sheet_name.lower():
+    if re.search(r'\(2\s?смена\)', clean_name):
         return "2 смена"
     return None
+
+
+def _process_grade_group(grade_classes: dict, grade_num: int, shift_name: str, part_num: int = None):
+    """
+    Helper function to process a dictionary of classes for a specific grade and shift.
+    This logic was extracted to handle splitting large groups.
+    """
+    grade_class_names = sorted(grade_classes.keys())
+    all_lessons_info, time_grid = {}, set()
+
+    for lessons_inner in grade_classes.values():
+        for lesson in lessons_inner:
+            if lesson['предмет'] != '—':
+                all_lessons_info[lesson['время']] = {'урок': lesson['урок'],
+                                                     'start_time': lesson['start_time']}
+                time_grid.add(lesson['время'])
+
+    if not time_grid:
+        return None, None
+
+    schedule_rows = []
+    for lesson_time in sorted(list(time_grid), key=parse_time_str):
+        row = {'время': lesson_time, 'предметы': {}, 'урок': all_lessons_info[lesson_time]['урок']}
+        for cn in grade_class_names:
+            lesson = next((l for l in grade_classes.get(cn, []) if
+                           l['время'] == lesson_time and l['предмет'] != '—'), None)
+            row['предметы'][cn] = lesson['предмет'] if lesson else ''
+        schedule_rows.append(row)
+
+    valid_times = [v['start_time'] for v in all_lessons_info.values() if v['start_time']]
+    if not valid_times:
+        return None, None
+
+    part_suffix = f", часть {part_num}" if part_num else ""
+    grade_key = f"{grade_num}-е классы ({shift_name}{part_suffix})"
+
+    schedule_data = {
+        'grade_key': grade_key,  # Add the key to the data itself
+        'class_names': grade_class_names, 'schedule_rows': schedule_rows,
+        'first_lesson_time': min(valid_times),
+        'last_lesson_end_time': (datetime.combine(datetime.today(), max(valid_times)) + pd.Timedelta(
+            minutes=40)).time()
+    }
+    return schedule_data
 
 
 def parse_schedule(file_path: str):
@@ -47,6 +92,7 @@ def parse_schedule(file_path: str):
             df['Дни'] = df['Дни'].ffill()
             df = df.fillna('')
             sheet_shift = _get_shift_from_sheet_name(sheet_name)
+            log.info(f"Обработка листа: '{sheet_name}'. Определена смена по названию: '{sheet_shift}'")
 
             for day_name, day_group in df.groupby('Дни'):
                 if day_name not in raw_data:
@@ -70,10 +116,16 @@ def parse_schedule(file_path: str):
                             'урок': lesson_info['урок'], 'время': lesson_info['время'],
                             'предмет': subject or '—', 'start_time': lesson_info['start_time']
                         })
+
                     if has_any_subject:
-                        first_lesson = next((l for l in lessons if l['предмет'] != '—'), None)
-                        actual_shift = sheet_shift or get_shift_from_time(
-                            first_lesson['время']) if first_lesson else "1 смена"
+                        if sheet_shift:
+                            actual_shift = sheet_shift
+                        else:
+                            first_lesson = next((l for l in lessons if l['предмет'] != '—'), None)
+                            actual_shift = get_shift_from_time(first_lesson['время']) if first_lesson else "1 смена"
+                            log.warning(
+                                f"Смена для класса '{normalized_name}' на листе '{sheet_name}' определена по времени как '{actual_shift}', т.к. в названии листа нет информации о смене.")
+
                         raw_data[day_name][actual_shift][normalized_name] = lessons
 
         final_schedule = {}
@@ -102,43 +154,50 @@ def parse_schedule(file_path: str):
                                                                       item[0])))
 
             # --- Формируем Landscape View ---
+            temp_landscape_view = {}
             for shift_name in ["1 смена", "2 смена"]:
                 classes_in_shift = raw_data[day][shift_name]
                 if not classes_in_shift: continue
                 get_grade = lambda item: int(re.match(r'(\d+)', item[0]).group(1))
                 for grade_num, grade_iter in groupby(sorted(classes_in_shift.items(), key=get_grade), key=get_grade):
+
+                    if grade_num < 5:
+                        continue
+
                     grade_classes = dict(grade_iter)
-                    grade_class_names = sorted(grade_classes.keys())
-                    all_lessons_info, time_grid = {}, set()
+                    schedule_data = _process_grade_group(grade_classes, grade_num, shift_name)
+                    if schedule_data and schedule_data.get('grade_key'):
+                        temp_landscape_view[schedule_data['grade_key']] = schedule_data
 
-                    for lessons_inner in grade_classes.values():
-                        for lesson in lessons_inner:
-                            if lesson['предмет'] != '—':
-                                all_lessons_info[lesson['время']] = {'урок': lesson['урок'],
-                                                                     'start_time': lesson['start_time']}
-                                time_grid.add(lesson['время'])
+            # --- NEW: Smartly create slides based on lesson count ---
+            day_data["landscape_slides"] = []
 
-                    if not time_grid: continue
+            # Create a numerically sorted list of keys
+            sorted_keys = sorted(temp_landscape_view.keys(), key=lambda k: (int(re.search(r'(\d+)', k).group(1)), k))
 
-                    schedule_rows = []
-                    for lesson_time in sorted(list(time_grid), key=parse_time_str):
-                        row = {'время': lesson_time, 'предметы': {}, 'урок': all_lessons_info[lesson_time]['урок']}
-                        for cn in grade_class_names:
-                            lesson = next((l for l in grade_classes.get(cn, []) if
-                                           l['время'] == lesson_time and l['предмет'] != '—'), None)
-                            row['предметы'][cn] = lesson['предмет'] if lesson else ''
-                        schedule_rows.append(row)
+            i = 0
+            while i < len(sorted_keys):
+                group1_key = sorted_keys[i]
+                group1_data = temp_landscape_view[group1_key]
+                rows1_count = len(group1_data['schedule_rows'])
 
-                    valid_times = [v['start_time'] for v in all_lessons_info.values() if v['start_time']]
-                    if not valid_times: continue
+                if i + 1 < len(sorted_keys):
+                    group2_key = sorted_keys[i + 1]
+                    group2_data = temp_landscape_view[group2_key]
+                    rows2_count = len(group2_data['schedule_rows'])
 
-                    grade_key = f"{grade_num}-е классы ({shift_name})"
-                    day_data["landscape_view"][grade_key] = {
-                        'class_names': grade_class_names, 'schedule_rows': schedule_rows,
-                        'first_lesson_time': min(valid_times),
-                        'last_lesson_end_time': (datetime.combine(datetime.today(), max(valid_times)) + pd.Timedelta(
-                            minutes=40)).time()
-                    }
+                    # If total rows are too many, put the first group on its own slide
+                    if rows1_count + rows2_count > 16:
+                        day_data["landscape_slides"].append([group1_data])
+                        i += 1
+                    else:
+                        # Otherwise, pair them up
+                        day_data["landscape_slides"].append([group1_data, group2_data])
+                        i += 2
+                else:
+                    # Last group, add it alone
+                    day_data["landscape_slides"].append([group1_data])
+                    i += 1
 
             final_schedule[day] = day_data
         return final_schedule

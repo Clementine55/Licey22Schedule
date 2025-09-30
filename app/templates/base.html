@@ -4,15 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Расписание Лицей 22</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #0f172a, #1e293b, #334155);
+            color: #e2e8f0;
+            box-sizing: border-box;
+            display: flex; /* Используем flex для центрирования */
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        /* --- ИЗМЕНЕНИЕ: Контейнер для логотипа, который будет вверху --- */
+        .header-logo-container {
+            position: fixed;
+            top: 50px;
+            left: 51%;
+            transform: translateX(-50%);
+            z-index: 1000;
+        }
+        .header-logo-container img {
+            max-height: 120px; /* Устанавливаем высоту */
+            width: auto;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 900px; /* Ограничиваем ширину на больших экранах */
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-4">
+
+    <!-- --- ИЗМЕНЕНИЕ: Добавляем блок для логотипа, если он передан --- -->
+    {% if logo_path %}
+    <div class="header-logo-container">
+        <img src="{{ url_for('static', filename=logo_path) }}" alt="Логотип">
+    </div>
+    {% endif %}
+
+    <div class="main-container">
         <main>
             {% block content %}{% endblock %}
         </main>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
 </body>
 </html>

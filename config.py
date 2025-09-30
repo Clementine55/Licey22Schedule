@@ -40,8 +40,9 @@ class Config:
     SHOW_AFTER_END_MIN = int(os.getenv('SHOW_AFTER_END_MIN', 30))  # 30 минут
 
     # Выбор временного региона
-    REGION_TIMEDELTA = int(os.getenv('REGION_TIMEDELTA', 6))  # +7 часов
+    REGION_TIMEDELTA = int(os.getenv('REGION_TIMEDELTA', 7))  # +7 часов
 
     # Проверка, что переменные загрузились
     if not YANDEX_TOKEN or not YANDEX_FILE_PATH:
         raise ValueError("Необходимо задать YANDEX_TOKEN и YANDEX_FILE_PATH в файле .env")
+

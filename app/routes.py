@@ -2,7 +2,7 @@ import time
 import os
 import logging
 from flask import Blueprint, render_template
-from datetime import datetime, timedelta, time as time_obj  # Импортируем time как time_obj
+from datetime import datetime, timedelta, time as time_obj
 from .services import yandex_disk_client, schedule_parser, time_service
 from config import Config
 
@@ -12,7 +12,7 @@ bp = Blueprint('main', __name__)
 
 def make_schedule_json_serializable(data):
     """
-    Рекурсивно преобразует объекты datetime.time в строки, чтобы избежать ошибок JSON.
+    Recursively converts datetime.time objects to strings to avoid JSON errors.
     """
     if isinstance(data, dict):
         return {k: make_schedule_json_serializable(v) for k, v in data.items()}
@@ -26,7 +26,7 @@ def make_schedule_json_serializable(data):
 
 @bp.route('/')
 def index():
-    log.info("Пользователь зашел на главную страницу.")
+    log.info("User accessed the main page.")
     local_file_path = Config.LOCAL_FILE_PATH
     cache_duration_seconds = Config.CACHE_DURATION
     should_download = True
@@ -36,61 +36,101 @@ def index():
         file_mod_time = os.path.getmtime(local_file_path)
         if (time.time() - file_mod_time) < cache_duration_seconds:
             should_download = False
-            log.info(f"Используется свежая кэшированная версия файла '{local_file_path}'.")
+            log.info(f"Using fresh cached version of the file '{local_file_path}'.")
 
     if should_download:
         if cached_file_exists:
-            log.info(f"Кэшированный файл '{local_file_path}' устарел. Пытаюсь обновить.")
+            log.info(f"Cached file '{local_file_path}' is outdated. Attempting to update.")
         else:
-            log.info(f"Локальный файл '{local_file_path}' отсутствует. Начинаю скачивание.")
+            log.info(f"Local file '{local_file_path}' is missing. Starting download.")
 
         download_success = yandex_disk_client.download_schedule_file(local_file_path)
         if not download_success:
             if not cached_file_exists:
-                log.error("КРИТИЧЕСКАЯ ОШИБКА: Не удалось скачать файл и нет кэшированной версии.")
-                return render_template('error.html', message="Не удалось загрузить файл с расписанием."), 500
+                log.error("CRITICAL ERROR: Failed to download file and no cached version is available.")
+                return render_template('error.html',
+                                       message="Не удалось загрузить файл с расписанием.",
+                                       logo_path=Config.LOGO_FILE_PATH), 500
             else:
-                log.warning("Не удалось обновить файл расписания. Будет использована устаревшая кэшированная версия.")
+                log.warning("Failed to update schedule file. Using outdated cached version.")
 
     full_schedule = schedule_parser.parse_schedule(local_file_path)
     if not full_schedule:
-        log.error("Файл расписания пуст или не удалось его распарсить.")
-        return render_template('error.html', message="Файл расписания поврежден или имеет неверный формат."), 500
+        log.error("Schedule file is empty or could not be parsed.")
+        return render_template('error.html',
+                               message="Файл расписания поврежден или имеет неверный формат.",
+                               logo_path=Config.LOGO_FILE_PATH), 500
 
     active_day_name, current_date, current_time = time_service.get_current_day_and_time()
 
+    is_weekend = active_day_name in ["Воскресенье"]
+
     schedule_for_today = full_schedule.get(active_day_name)
+    lessons_are_over = False
 
     if schedule_for_today and current_time:
+        # Check if there were any landscape slides to begin with
+        initial_slides = schedule_for_today.get("landscape_slides", [])
+        initial_lessons_existed = bool(initial_slides)
+
         today = datetime.today()
         current_dt = datetime.combine(today, current_time)
 
-        filtered_landscape_view = {}
-        # Используем .get() для безопасного доступа к ключу
-        for grade_key, grade_data in schedule_for_today.get("landscape_view", {}).items():
-            start_time = grade_data.get('first_lesson_time')
-            end_time = grade_data.get('last_lesson_end_time')
-            if not start_time or not end_time: continue
+        active_grade_groups = []
+        # Flatten the list of slides and filter each group based on time
+        if initial_lessons_existed:
+            for slide in initial_slides:
+                for grade_data in slide:
+                    start_time = grade_data.get('first_lesson_time')
+                    end_time = grade_data.get('last_lesson_end_time')
+                    if not start_time or not end_time:
+                        continue
 
-            start_dt = datetime.combine(today, start_time)
-            end_dt = datetime.combine(today, end_time)
+                    start_dt = datetime.combine(today, start_time)
+                    end_dt = datetime.combine(today, end_time)
+                    show_from = start_dt - timedelta(minutes=Config.SHOW_BEFORE_START_MIN)
+                    show_until = end_dt + timedelta(minutes=Config.SHOW_AFTER_END_MIN)
 
-            show_from = start_dt - timedelta(minutes=Config.SHOW_BEFORE_START_MIN)
-            show_until = end_dt + timedelta(minutes=Config.SHOW_AFTER_END_MIN)
+                    # Keep the group if the current time is within the display window
+                    if show_from <= current_dt <= show_until:
+                        active_grade_groups.append(grade_data)
 
-            if show_from <= current_dt <= show_until:
-                filtered_landscape_view[grade_key] = grade_data
+        # Rebuild the slide structure from the filtered (active) groups
+        filtered_landscape_slides = []
+        i = 0
+        while i < len(active_grade_groups):
+            group1_data = active_grade_groups[i]
+            rows1_count = len(group1_data.get('schedule_rows', []))
 
-        schedule_for_today["landscape_view"] = filtered_landscape_view
+            if i + 1 < len(active_grade_groups):
+                group2_data = active_grade_groups[i + 1]
+                rows2_count = len(group2_data.get('schedule_rows', []))
 
-    # --- Преобразуем данные перед отправкой в шаблон ---
+                # If total rows would be too many, put the first group on its own slide
+                if rows1_count + rows2_count > 16:
+                    filtered_landscape_slides.append([group1_data])
+                    i += 1
+                else:
+                    # Otherwise, pair them up on one slide
+                    filtered_landscape_slides.append([group1_data, group2_data])
+                    i += 2
+            else:
+                # Last group, add it by itself
+                filtered_landscape_slides.append([group1_data])
+                i += 1
+
+        # Update the schedule with the correctly filtered slides
+        schedule_for_today["landscape_slides"] = filtered_landscape_slides
+
+        # Set the flag if lessons existed today but are now over (filtered list is empty)
+        if initial_lessons_existed and not filtered_landscape_slides:
+            lessons_are_over = True
+
     json_safe_full_schedule = make_schedule_json_serializable(full_schedule)
     json_safe_schedule_for_today = make_schedule_json_serializable(schedule_for_today)
-
-    # --- ИСПРАВЛЕНИЕ: Форматируем время для передачи в JavaScript ---
     current_time_str = current_time.strftime('%H:%M:%S') if current_time else '00:00:00'
 
-    log.info("Расписание успешно загружено и готово к передаче на фронтенд.")
+    log.info("Schedule loaded successfully and is ready to be sent to the frontend.")
 
     return render_template(
         'index.html',
@@ -98,8 +138,10 @@ def index():
         schedule_for_today=json_safe_schedule_for_today,
         active_day_name=active_day_name,
         current_date=current_date,
-        current_time=current_time_str,  # <-- ВОТ ИЗМЕНЕНИЕ
+        current_time=current_time_str,
         refresh_interval=cache_duration_seconds,
-        carousel_interval=Config.CAROUSEL_INTERVAL, # <-- Исправлена опечатка CAROUSEEL -> CAROUSEL
-        logo_path=Config.LOGO_FILE_PATH
+        carousel_interval=Config.CAROUSEL_INTERVAL,
+        logo_path=Config.LOGO_FILE_PATH,
+        lessons_are_over=lessons_are_over,
+        is_weekend=is_weekend
     )

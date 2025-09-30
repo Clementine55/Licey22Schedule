@@ -2,16 +2,22 @@
 <html lang="ru" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Расписание Лицей 22</title>
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
     <style>
-        body {
+        /* Base styles */
+        html, body {
             min-height: 100vh;
             margin: 0;
-            background: linear-gradient(135deg, #0f172a, #1e293b, #334155);
+            padding: 0;
+        }
+
+        body {
             color: #e2e8f0;
-            box-sizing: border-box;
+            /* NEW SOLUTION: The gradient now scrolls with the content.
+               It covers the entire body length, making it look uniform and avoiding mobile browser bugs. */
+            background: linear-gradient(135deg, #0f172a, #1e293b, #334155);
         }
 
         #live-time-portrait,
@@ -19,28 +25,44 @@
             font-variant-numeric: tabular-nums;
         }
 
-        /* --- ПЕРЕКЛЮЧАТЕЛЬ РЕЖИМОВ --- */
-        .portrait-view { display: none; }
+        /* --- Mode switcher --- */
         .landscape-view { display: block; }
+        .portrait-view { display: none; } /* Default state: hidden */
+
         @media (orientation: portrait) {
-            .portrait-view { display: block; }
             .landscape-view { display: none; }
+            .portrait-view { display: flex; } /* Becomes a flex container ONLY in portrait mode */
         }
 
-        /* --- СТИЛИ ДЛЯ ПОРТРЕТНОГО РЕЖИМА --- */
+        /* --- Portrait Mode Styles --- */
         .portrait-view {
-             padding-bottom: 3rem;
-             padding-top: 5rem; /* Базовый отступ сверху */
+             flex-direction: column;
+             min-height: 100vh;
+             box-sizing: border-box;
+             padding-top: calc(3rem + env(safe-area-inset-top));
+             padding-left: env(safe-area-inset-left);
+             padding-right: env(safe-area-inset-right);
+             transition: padding-top 0.3s ease;
         }
+
+        .portrait-view .container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
         .portrait-view .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 1rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
         }
         .portrait-view .logo-img {
-            max-width: 300px;
+            max-width: 240px;
             height: auto;
             opacity: 0.9;
             flex-shrink: 0;
@@ -54,14 +76,66 @@
             text-align: right;
             font-size: 2.2rem;
             line-height: 1.4;
+        }
 
-        }
-        #selection-container {
-            background-color: rgba(15, 23, 42, 0.75);
+        /* --- Selection Footer Panel --- */
+        .selection-footer {
+            position: fixed;
+            bottom: calc(0.5rem + env(safe-area-inset-bottom));
+            left: calc(1rem + env(safe-area-inset-left));
+            right: calc(1rem + env(safe-area-inset-right));
+            z-index: 1010;
+            background-color: rgba(20, 30, 48, 0.75);
             backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.5rem;
+            padding: 0.9rem 1.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.2);
+            max-width: 650px;
+            margin: 0 auto;
+            transform: translateX(0);
         }
+         @media (min-width: 576px) {
+            .selection-footer {
+                left: 50%;
+                transform: translateX(-50%);
+                width: calc(100% - 2rem);
+            }
+        }
+
+        /* --- Central Prompt Styles --- */
+        #schedule-display {
+            position: relative;
+        }
+
+        #schedule-display.is-prompting {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .initial-prompt {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #64748b;
+            padding: 2rem;
+        }
+        .prompt-icon {
+            font-size: 4rem;
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+        .initial-prompt h3 {
+            color: #cbd5e1;
+            font-weight: bold;
+        }
+
+        /* --- Schedule Card Styles --- */
         .schedule-day-card {
             background-color: rgba(30, 41, 59, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -70,65 +144,125 @@
         .schedule-day-header {
             font-size: 1.5rem;
             font-weight: bold;
-            padding: 0.75rem 1.25rem;
+            padding: 0.70rem 1.25rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center; /* Центрируем день недели */
+            text-align: center;
         }
         .portrait-view .table {
             --bs-table-bg: transparent;
             --bs-table-striped-bg: rgba(255, 255, 255, 0.03);
             --bs-table-border-color: transparent;
         }
-        .portrait-view .table td, .portrait-view .table th { vertical-align: middle; }
+        .portrait-view .table td, .portrait-view .table th {
+            vertical-align: middle;
+        }
         .portrait-view .lesson-num-col { width: 10%; text-align: center; }
         .portrait-view .time-col { width: 30%; text-align: center; }
 
-        /* Адаптивность для маленьких телефонов */
+        /* HIDE HEADER AND REMOVE PADDING ON SMALL SCREENS (PORTRAIT) WHEN SCHEDULE IS SELECTED */
         @media (max-width: 750px) {
-            .portrait-view .header-info {
-                display: none; /* Скрываем дату/время */
+            .portrait-view.schedule-selected .header {
+                display: none;
             }
-             .portrait-view .header {
-                justify-content: center; /* Центрируем логотип */
-             }
+            .portrait-view.schedule-selected {
+                padding-top: calc(1rem + env(safe-area-inset-top)); /* Reduce padding when header is hidden */
+            }
         }
 
+        /* --- Mobile Portrait Specifics --- */
+        @media (max-width: 576px) and (orientation: portrait) {
+            html {
+                font-size: 14px;
+            }
+            .portrait-view .logo-img {
+                max-width: 180px;
+            }
 
-        /* --- СТИЛИ ДЛЯ ГОРИЗОНТАЛЬНОГО РЕЖИМА --- */
+            .portrait-view .header {
+                justify-content: center;
+            }
+            .portrait-view .header-info {
+                display: none;
+            }
+
+            .selection-footer .form-label {
+                font-size: 0.8rem;
+            }
+            .selection-footer .form-select,
+            .selection-footer .btn {
+                font-size: 0.9rem;
+                padding-top: 0.6rem;
+                padding-bottom: 0.6rem;
+            }
+            .content-spacer {
+                height: calc(8rem + env(safe-area-inset-bottom));
+            }
+        }
+
+        /* --- Landscape Mode Styles (Large Version) --- */
         .landscape-view {
-            min-height: 100vh;
-            padding-top: max(3rem, calc(50vh - 20rem)); /* Динамическое центрирование */
+            padding: 1.5rem;
+            padding-top: calc(2.0rem + env(safe-area-inset-top));
+            padding-left: calc(1.5rem + env(safe-area-inset-left));
+            padding-right: calc(1.5rem + env(safe-area-inset-right));
+            box-sizing: border-box;
         }
-        .landscape-view .header-info {
-            position: fixed;
-            top: 1.5rem;
-            left: 3rem;
-            right: 3rem;
+
+        .landscape-view .header-info-simple {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 2.5rem;
+            font-size: 4.5rem;
             font-weight: bold;
             color: #cbd5e1;
-            z-index: 1000;
+            margin-bottom: -3rem;
         }
+
+        .landscape-view .logo-img-landscape {
+            max-height: 100px;
+            height: auto;
+            opacity: 0.9;
+        }
+        .landscape-view .header-datetime-landscape {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            font-size: 2.5rem;
+            line-height: 1.3;
+        }
+
         .landscape-view .main-title {
             font-weight: bold;
-            margin-bottom: 2.0rem !important;
+            margin-bottom: 1.4rem !important;
             font-size: 4rem;
+            text-align: center;
         }
-        .landscape-view .card {
+
+        .grade-pair-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 1.5rem;
+            min-height: 70vh;
+        }
+
+        .grade-pair-container .card {
             background-color: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(200px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .landscape-view .card-header {
+        .grade-pair-container .card-header {
             background-color: rgba(30, 41, 59, 0.8);
             font-weight: bold;
-            padding: 0.75rem 1rem;
+            padding: 0.75rem 1.25rem;
         }
+        .grade-pair-container .card-body {
+            padding: 0;
+            overflow-x: auto;
+        }
+
         .landscape-view .table {
-            table-layout: fixed; /* <-- ВОТ ГЛАВНОЕ ИЗМЕНЕНИЕ */
+            table-layout: fixed;
             width: 100%;
             --bs-table-bg: transparent;
             --bs-table-striped-bg: rgba(255, 255, 255, 0.03);
@@ -140,54 +274,31 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        .landscape-view .logo-container {
-            position: fixed;
-            bottom: 40px;
-            left: 50px;
-            z-index: 1000;
-        }
-        .landscape-view .logo-container img { max-width: 300px; }
 
-        /* Адаптация для мобильных устройств в горизонтальном режиме */
+        /* HIDE HEADER ON SMALL SCREENS (LANDSCAPE) */
         @media (max-height: 500px) and (orientation: landscape) {
-
-            /* 1. Скрываем всё лишнее: заголовок, время/дату и логотип */
-            .landscape-view .main-title,
-            .landscape-view .header-info,
-            .landscape-view .logo-container {
+            .landscape-view .header-info-simple {
                 display: none;
             }
-
-            /* 2. Убираем лишние отступы у основного контейнера, чтобы таблица заняла всё место */
-            .landscape-view {
-                padding-top: 1rem; /* Оставляем небольшой отступ сверху */
-                padding-bottom: 1rem;
-                min-height: auto; /* Убираем требование минимальной высоты */
-                display: flex; /* Используем flex для центрирования */
-                align-items: center;
+            .landscape-view .main-title {
+                display: none;
             }
-
-            /* 3. Немного уменьшаем общий масштаб всего интерфейса */
-            /* Стандартный размер шрифта ~16px. Уменьшая его, мы пропорционально уменьшаем все rem-элементы */
+            .landscape-view {
+                padding: 1rem;
+            }
             html {
                 font-size: 13px;
             }
-
-            /* 4. Увеличиваем максимальную высоту таблицы, чтобы она занимала больше места на экране */
-            .landscape-view .table-responsive {
-                /* Занимает почти всю высоту экрана, за вычетом наших небольших отступов */
-                max-height: calc(100vh - 2rem);
-            }
         }
 
-        /* --- СТИЛИ ПОДСВЕТКИ --- */
+        /* --- Highlight Styles --- */
         .current-lesson {
-            background-color: rgba(53, 230, 118, 0.2) !important; /* Салатовый */
+            background-color: rgba(53, 230, 118, 0.2) !important;
             border-left: 4px solid #33a15c !important;
             border-right: 4px solid #33a15c !important;
         }
         .next-lesson {
-            background-color: rgba(137, 132, 219, 0.15) !important; /* Лиловый */
+            background-color: rgba(137, 132, 219, 0.15) !important;
             border-left: 4px solid #5d5a8f !important;
             border-right: 4px solid #5d5a8f !important;
         }
@@ -195,12 +306,8 @@
 
 </head>
 <body>
-
-    <!-- ======================================================= -->
-    <!-- === ПОРТРЕТНЫЙ РЕЖИМ (Выбор класса, вся неделя)      === -->
-    <!-- ======================================================= -->
     <div class="portrait-view">
-        <div class="container mt-4">
+        <div class="container">
             <header class="header">
                 {% if logo_path %}
                     <img src="{{ url_for('static', filename=logo_path) }}" alt="Логотип" class="logo-img">
@@ -211,96 +318,108 @@
                 </div>
             </header>
 
-            <div id="selection-container" class="p-4 mb-4">
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-5">
-                        <label for="grade-selector" class="form-label">1. Выберите параллель</label>
-                        <select id="grade-selector" class="form-select form-select-lg">
-                            <option selected disabled>--</option>
-                        </select>
-                    </div>
-                    <div class="col-md-5">
-                        <label for="class-selector" class="form-label">2. Выберите класс</label>
-                        <select id="class-selector" class="form-select form-select-lg" disabled>
-                            <option selected disabled>--</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <button id="reset-button" class="btn btn-secondary w-100">Сбросить</button>
-                    </div>
+            <div id="schedule-display" class="is-prompting">
+                 <div class="initial-prompt">
+                    <div class="prompt-icon">📅</div>
+                    <h3>Расписание не выбрано</h3>
+                    <p>Используйте панель внизу, чтобы выбрать класс</p>
                 </div>
             </div>
 
-            <div id="schedule-display" class="mt-4">
-                 <div class="alert alert-info">Выберите параллель и класс, чтобы увидеть расписание.</div>
+            <div class="content-spacer"></div>
+        </div>
+
+        <div class="selection-footer">
+            <div id="selection-container">
+                <div class="row g-2 align-items-end">
+                    <div class="col">
+                        <label for="grade-selector" class="form-label">Параллель</label>
+                        <select id="grade-selector" class="form-select form-select-lg" autocomplete="off">
+                            <option selected disabled>--</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label for="class-selector" class="form-label">Класс</label>
+                        <select id="class-selector" class="form-select form-select-lg" disabled autocomplete="off">
+                            <option selected disabled>--</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button id="reset-button" class="btn btn-secondary btn-lg w-100">Сброс</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
 
-    <!-- ======================================================= -->
-    <!-- === ГОРИЗОНТАЛЬНЫЙ РЕЖИМ (Карусель, только сегодня)  === -->
-    <!-- ======================================================= -->
     <div class="landscape-view">
-        <div class="header-info">
-            <span id="live-time-landscape">00:00:00</span>
-            <span id="current-date-landscape">{{ current_date }}</span>
-        </div>
         <div class="container-fluid">
+            <div class="header-info-simple">
+                {% if logo_path %}
+                    <img src="{{ url_for('static', filename=logo_path) }}" alt="Логотип" class="logo-img-landscape">
+                {% endif %}
+                <div class="header-datetime-landscape">
+                    <span id="current-date-landscape">{{ current_date }}</span>
+                    <span id="live-time-landscape">00:00:00</span>
+                </div>
+            </div>
+
             {% if schedule_for_today and active_day_name %}
-                <h1 class="text-center main-title">{{ active_day_name }}</h1>
-                {% if schedule_for_today.landscape_view and schedule_for_today.landscape_view|length > 0 %}
+                <h1 class="main-title">{{ active_day_name }}</h1>
+                {% if schedule_for_today.landscape_slides and schedule_for_today.landscape_slides|length > 0 %}
                     <div id="scheduleCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-pause="false" data-bs-interval="{{ carousel_interval * 1000 }}">
                         <div class="carousel-inner">
-                            {% for grade_key, grade_data in schedule_for_today.landscape_view.items() %}
-                                {% if grade_data and grade_data.schedule_rows %}
+
+                            {% for slide_group in schedule_for_today.landscape_slides %}
                                 <div class="carousel-item {% if loop.first %}active{% endif %}">
-                                    <div class="card">
-                                        <div class="card-header"><h4 class="m-0 text-center">{{ grade_key }}</h4></div>
-                                        <div class="card-body p-0">
-                                            <div class="table-responsive" style="max-height: 80vh; overflow-y: auto;">
-                                                <table class="table table-bordered table-striped mb-0">
-                                                    <thead>
-                                                        <tr>
-                                                            <th style="width: 5%;" class="text-center">№</th>
-                                                            <th style="width: 15%;" class="text-center">Время</th>
-                                                            {% for class_name in grade_data.class_names %}
-                                                                <th>{{ class_name }}</th>
-                                                            {% endfor %}
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {% for row in grade_data.schedule_rows %}
-                                                        <tr data-time-start="{{ row['время'] }}">
-                                                            <td class="text-center">{{ row['урок'] }}</td>
-                                                            <td class="text-center">{{ row['время'] }}</td>
-                                                            {% for class_name in grade_data.class_names %}
-                                                                <td>{{ row.предметы.get(class_name, '') }}</td>
-                                                            {% endfor %}
-                                                        </tr>
-                                                        {% endfor %}
-                                                    </tbody>
-                                                </table>
+                                    <div class="grade-pair-container">
+                                        {% for grade_data in slide_group %}
+                                            <div class="card">
+                                                <div class="card-header"><h4 class="m-0 text-center">{{ grade_data.grade_key }}</h4></div>
+                                                <div class="card-body">
+                                                    <div class="table-responsive">
+                                                        <table class="table table-bordered table-striped mb-0">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="width: 3%;" class="text-center">№</th>
+                                                                    <th style="width: 7%;" class="text-center">Время</th>
+                                                                    {% for class_name in grade_data.class_names %}
+                                                                        <th>{{ class_name }}</th>
+                                                                    {% endfor %}
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {% for row in grade_data.schedule_rows %}
+                                                                <tr data-time-start="{{ row['время'] }}">
+                                                                    <td class="text-center">{{ row['урок'] }}</td>
+                                                                    <td class="text-center">{{ row['время'] }}</td>
+                                                                    {% for class_name in grade_data.class_names %}
+                                                                        <td>{{ row.предметы.get(class_name, '') }}</td>
+                                                                    {% endfor %}
+                                                                </tr>
+                                                                {% endfor %}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
+                                        {% endfor %}
                                     </div>
                                 </div>
-                                {% endif %}
                             {% endfor %}
                         </div>
                     </div>
+                {% elif lessons_are_over %}
+                    <div class="alert alert-primary text-center mt-4"><h4>Сейчас занятий нет.</h4></div>
                 {% else %}
-                    <div class="alert alert-info mt-4">Актуальных занятий сейчас нет.</div>
+                    <div class="alert alert-info text-center mt-4"><h4>Занятий сегодня нет.</h4></div>
                 {% endif %}
+            {% elif is_weekend %}
+                <h1 class="main-title">Воскресенье</h1>
+                <div class="alert alert-info text-center mt-4"><h4>Сегодня выходной день!</h4></div>
             {% else %}
-                <div class="alert alert-warning mt-4" role="alert">
-                    На сегодня расписания нет или оно не загружено.
-                </div>
-            {% endif %}
-            {% if logo_path %}
-                <div class="logo-container">
-                    <img src="{{ url_for('static', filename=logo_path) }}" alt="Логотип">
-                </div>
+                <div class="alert alert-warning text-center mt-4" role="alert">На сегодня расписания нет или оно не загружено.</div>
             {% endif %}
         </div>
     </div>
@@ -308,15 +427,16 @@
 
     <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
     <script>
-        // --- ОБЩИЙ СКРИПТ ---
         const fullSchedule = {{ full_schedule | tojson }};
         const activeDayName = '{{ active_day_name }}';
 
-        // --- ЛОГИКА ДЛЯ ПОРТРЕТНОГО РЕЖИМА ---
         const gradeSelector = document.getElementById('grade-selector');
         const classSelector = document.getElementById('class-selector');
         const scheduleDisplay = document.getElementById('schedule-display');
         const resetButton = document.getElementById('reset-button');
+        const portraitView = document.querySelector('.portrait-view');
+
+        const initialScheduleDisplayHTML = scheduleDisplay.innerHTML;
 
         if (gradeSelector) {
             function populateGradeSelector() {
@@ -361,15 +481,20 @@
 
             function displayWeekSchedule(selectedClass) {
                 if (!selectedClass) {
-                    scheduleDisplay.innerHTML = '<div class="alert alert-info">Выберите параллель и класс.</div>';
+                    scheduleDisplay.innerHTML = initialScheduleDisplayHTML;
+                    scheduleDisplay.classList.add('is-prompting');
+                    if (portraitView) portraitView.classList.remove('schedule-selected');
                     return;
                 }
+
+                if (portraitView) portraitView.classList.add('schedule-selected');
+                scheduleDisplay.classList.remove('is-prompting');
                 let html = '<div class="row g-4">';
                 const daysOrder = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
 
                 for (const day of daysOrder) {
                     const dayData = fullSchedule[day]?.portrait_view[selectedClass];
-                    html += '<div class="col-12 col-lg-6"><div class="schedule-day-card">';
+                    html += `<div class="col-12 col-lg-6"><div id="day-${day}" class="schedule-day-card">`;
                     html += `<div class="schedule-day-header">${day}</div>`;
                     if (dayData && dayData.lessons.some(l => l.предмет !== '—')) {
                         html += '<table class="table table-striped mb-0">';
@@ -386,24 +511,32 @@
                 html += '</div>';
                 scheduleDisplay.innerHTML = html;
                 highlightCurrentLesson();
+
+                setTimeout(() => {
+                    const todayCard = document.getElementById(`day-${activeDayName}`);
+                    if (todayCard) {
+                        todayCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 100);
             }
 
             gradeSelector.addEventListener('change', (e) => {
                 populateClassSelector(e.target.value);
-                scheduleDisplay.innerHTML = '<div class="alert alert-info">Теперь выберите класс.</div>';
             });
             classSelector.addEventListener('change', (e) => { displayWeekSchedule(e.target.value); });
+
             resetButton.addEventListener('click', () => {
                 gradeSelector.selectedIndex = 0;
                 classSelector.innerHTML = '<option selected disabled>--</option>';
                 classSelector.disabled = true;
-                scheduleDisplay.innerHTML = '<div class="alert alert-info">Выберите параллель и класс.</div>';
+                scheduleDisplay.innerHTML = initialScheduleDisplayHTML;
+                scheduleDisplay.classList.add('is-prompting');
+                if (portraitView) portraitView.classList.remove('schedule-selected');
             });
 
             populateGradeSelector();
         }
 
-        // --- ЛОГИКА ЧАСОВ И ПОДСВЕТКИ ---
         const serverTimeString = '{{ current_time }}';
         let [hours, minutes, seconds] = serverTimeString.split(':').map(Number);
 
@@ -471,11 +604,9 @@
         function updateClock() {
             seconds++;
             if (seconds >= 60) {
-                seconds = 0;
-                minutes++;
+                seconds = 0; minutes++;
                 if (minutes >= 60) {
-                    minutes = 0;
-                    hours++;
+                    minutes = 0; hours++;
                     if (hours >= 24) hours = 0;
                 }
             }
@@ -488,18 +619,28 @@
             if (timePortrait) timePortrait.textContent = timeString;
             if (timeLandscape) timeLandscape.textContent = timeString;
 
-            // Подсветка обновляется вместе с часами
+            // Highlight is called every second, which is fine.
             highlightCurrentLesson();
         }
 
+        // Set an interval to reload the page to fetch new schedule data
         setInterval(() => { window.location.reload(true); }, {{ refresh_interval }} * 1000);
 
-        // --- ИНИЦИАЛИЗАЦИЯ ---
-        updateClock(); // Первый вызов, чтобы время и подсветка появились сразу
-        setInterval(updateClock, 1000); // Запускаем ежесекундное обновление
+        // This runs once the basic HTML is loaded.
+        window.addEventListener('DOMContentLoaded', () => {
+            if (gradeSelector) {
+                gradeSelector.selectedIndex = 0;
+            }
+            if (classSelector) {
+                classSelector.innerHTML = '<option selected disabled>--</option>';
+                classSelector.disabled = true;
+            }
+
+            updateClock(); // Run once immediately
+            setInterval(updateClock, 1000); // Then update every second
+        });
 
     </script>
 </body>
 </html>
-
 
