@@ -2,11 +2,9 @@ import os
 from dotenv import load_dotenv
 
 # Определяем путь к файлу .env.
-# Он ищет файл в той же директории, где находится config.py
 basedir = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(basedir, '.env'))
 
-# --- Основные настройки приложения ---
 
 class Config:
     """
@@ -14,35 +12,36 @@ class Config:
     Загружает переменные из окружения (из файла .env).
     """
     # Ваш OAuth-токен для API Яндекс.Диска
-    # Получить его можно здесь: https://yandex.ru/dev/disk/poligon/
     YANDEX_TOKEN = os.getenv('YANDEX_TOKEN')
 
-    # Полный путь к файлу с расписанием на вашем Яндекс.Диске
-    YANDEX_FILE_PATH = os.getenv('YANDEX_FILE_PATH')
+    # --- НОВАЯ СТРУКТУРА ДЛЯ ХРАНЕНИЯ РАСПИСАНИЙ ---
+    SCHEDULES = {}
+    # Ищем в .env переменные, чтобы динамически собрать словарь расписаний
+    i = 1
+    while True:
+        yandex_path = os.getenv(f'YANDEX_FILE_PATH_{i}')
+        file_name_key = os.getenv(f'FILE_NAME_{i}')
 
-    # Путь для сохранения скачанного файла.
-    # Если переменная не задана в .env, используется значение по умолчанию.
-    LOCAL_FILE_PATH = os.getenv('LOCAL_FILE_PATH', 'data/schedule.xlsx')
+        if not yandex_path or not file_name_key:
+            break  # Прерываем цикл, если переменные для следующего номера не найдены
 
-    #
+        local_path = f'data/{file_name_key}.xlsx'
+        SCHEDULES[file_name_key] = {
+            'yandex_path': yandex_path,
+            'local_path': local_path
+        }
+        i += 1
+    # --- КОНЕЦ НОВОЙ СТРУКТУРЫ ---
+
     LOGO_FILE_PATH = os.getenv('LOGO_FILE_PATH', 'img/logo.png')
-
-    # Время жизни кэша в секундах.
     CACHE_DURATION = int(os.getenv('CACHE_DURATION', 900))
-
-    # Интервал автоматического пролистывания карусели (в секундах)
     CAROUSEL_INTERVAL = int(os.getenv('CAROUSEL_INTERVAL', 7))
+    SHOW_BEFORE_START_MIN = int(os.getenv('SHOW_BEFORE_START_MIN', 60))
+    SHOW_AFTER_END_MIN = int(os.getenv('SHOW_AFTER_END_MIN', 30))
+    REGION_TIMEDELTA = int(os.getenv('REGION_TIMEDELTA', 7))
 
-    # Показывать расписание за X минут до начала первого урока
-    SHOW_BEFORE_START_MIN = int(os.getenv('SHOW_BEFORE_START_MIN', 60))  # 1 час
-
-    # Показывать расписание в течение X минут после окончания последнего урока
-    SHOW_AFTER_END_MIN = int(os.getenv('SHOW_AFTER_END_MIN', 30))  # 30 минут
-
-    # Выбор временного региона
-    REGION_TIMEDELTA = int(os.getenv('REGION_TIMEDELTA', 7))  # +7 часов
-
-    # Проверка, что переменные загрузились
-    if not YANDEX_TOKEN or not YANDEX_FILE_PATH:
-        raise ValueError("Необходимо задать YANDEX_TOKEN и YANDEX_FILE_PATH в файле .env")
-
+    # Проверка, что ключевые переменные загрузились
+    if not YANDEX_TOKEN:
+        raise ValueError("Необходимо задать YANDEX_TOKEN в файле .env")
+    if not SCHEDULES:
+        raise ValueError("Не найдено ни одной конфигурации расписания (YANDEX_FILE_PATH_1, FILE_NAME_1) в .env")

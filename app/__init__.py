@@ -4,19 +4,21 @@ import os
 from flask import Flask
 import logging
 from logging.handlers import RotatingFileHandler
-from config import Config
 
+
+# config.py не импортируется здесь, так как он больше не нужен для создания папок
 
 def create_app():
     app = Flask(__name__)
+    app.config.from_object('config.Config')
 
     # --- НАСТРОЙКА ЛОГГИРОВАНИЯ ---
     if not app.debug:
-        # Получаем путь к директории для данных из конфига
-        data_dir = os.path.dirname(Config.LOCAL_FILE_PATH)
+        # Указываем папку для хранения данных напрямую
+        data_dir = 'data'
 
-        # Создаем папку для данных, если ее нет и путь не пустой
-        if data_dir and not os.path.exists(data_dir):
+        # Создаем папку для данных, если ее нет
+        if not os.path.exists(data_dir):
             os.makedirs(data_dir)
 
         # Создаем папку для логов, если ее нет
@@ -34,8 +36,11 @@ def create_app():
         app.logger.setLevel(logging.INFO)
         app.logger.info('Приложение School Schedule запущено')
 
-        # --- РЕГИСТРАЦИЯ BLUEPRINT ---
-        from . import routes
-        app.register_blueprint(routes.bp)
+    # --- РЕГИСТРАЦИЯ BLUEPRINT ---
+    from . import routes
+    app.register_blueprint(routes.bp)
+
+    from . import api_routes
+    app.register_blueprint(api_routes.bp)
 
     return app
