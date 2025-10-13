@@ -1,513 +1,249 @@
-body {
-    background-color: #f8f9fa;
-}
+/* =================================== */
+/* === BASE & GLOBAL STYLES === */
+/* =================================== */
 
-.accordion-button:not(.collapsed) {
-    color: #0d6efd;
-    background-color: #e7f1ff;
-}
+html, body { min-height: 100vh; margin: 0; padding: 0; }
+body { color: #e2e8f0; background: linear-gradient(135deg, #0f172a, #1e293b, #334155); }
+#live-time-portrait, #live-time-landscape { font-variant-numeric: tabular-nums; }
 
-.nav-tabs .nav-link {
-    font-weight: 500;
-}
-/* Base styles */
-html, body {
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
-}
+/* =================================== */
+/* === LAYOUT MODE SWITCHER === */
+/* =================================== */
 
-body {
-    color: #e2e8f0;
-    background: linear-gradient(135deg, #0f172a, #1e293b, #334155);
-}
-
-#live-time-portrait,
-#live-time-landscape {
-    font-variant-numeric: tabular-nums;
-}
-
-/* --- Mode switcher --- */
 .landscape-view { display: block; }
-.portrait-view { display: none; } /* Default state: hidden */
-
+.portrait-view { display: none; }
 @media (orientation: portrait) {
     .landscape-view { display: none; }
-    .portrait-view { display: flex; } /* Becomes a flex container ONLY in portrait mode */
+    .portrait-view { display: flex; }
 }
 
-/* --- Portrait Mode Styles --- */
-.portrait-view {
-     position: relative; /* This is crucial for absolute positioning of children */
-     flex-direction: column;
-     min-height: 100vh;
-     box-sizing: border-box;
-     padding-top: calc(3rem + env(safe-area-inset-top));
-     padding-left: env(safe-area-inset-left);
-     padding-right: env(safe-area-inset-right);
-     transition: padding-top 0.3s ease;
-}
+/* =================================== */
+/* === PORTRAIT MODE STYLES === */
+/* =================================== */
 
-.portrait-view .container {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    padding-left: 1rem;
-    padding-right: 1rem;
-}
+.portrait-view { position: relative; flex-direction: column; min-height: 100vh; box-sizing: border-box; padding-top: calc(1.5rem + env(safe-area-inset-top)); padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); transition: padding-top 0.3s ease; }
+.portrait-view .container { flex-grow: 1; display: flex; flex-direction: column; width: 100%; padding-left: 1rem; padding-right: 1rem; }
+.content-wrapper { flex-grow: 1; display: flex; flex-direction: column; }
 
 .portrait-view .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 1rem;
-    margin-bottom: 3rem;
+    margin-bottom: 1.5rem;
+    padding: 0 1rem;
+    transition: all 0.3s ease-in-out;
 }
 .portrait-view .logo-img {
+    display: block;
     max-width: 240px;
     height: auto;
     opacity: 0.9;
-    flex-shrink: 0;
 }
 .portrait-view .header-info {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     font-weight: bold;
-    color: #cbd5e1;
-    text-align: right;
-    font-size: 2.2rem;
+    font-size: 1.8rem;
     line-height: 1.4;
-}
-
-.selection-panel {
-    position: fixed;
-    bottom: calc(0.5rem + env(safe-area-inset-bottom));
-    left: calc(1rem + env(safe-area-inset-left));
-    right: calc(1rem + env(safe-area-inset-right));
-    z-index: 1010;
-    background-color: rgba(20, 30, 48, 0.75);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 0.9rem 1.5rem;
-    border-radius: 1.5rem;
-    box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.2);
-    max-width: 650px;
-    margin: 0 auto;
-    transform: translateX(0);
-    transition: all 0.3s ease-in-out; /* Added transition for smooth movement */
-}
- @media (min-width: 576px) {
-    .selection-panel {
-        left: 50%;
-        transform: translateX(-50%);
-        width: calc(100% - 2rem);
-    }
-}
-
-/* --- Central Prompt Styles --- */
-#schedule-display {
-    position: relative;
-}
-
-#schedule-display.is-prompting {
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.initial-prompt {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    color: #64748b;
-    padding: 2rem;
-}
-.prompt-icon {
-    font-size: 4rem;
-    line-height: 1;
-    margin-bottom: 1rem;
-}
-.initial-prompt h3 {
     color: #cbd5e1;
-    font-weight: bold;
 }
 
-/* --- Schedule Card Styles --- */
-.schedule-day-card {
-    background-color: rgba(30, 41, 59, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.5rem;
-}
-.schedule-day-header {
-    font-size: 1.5rem;
-    font-weight: bold;
-    padding: 0.70rem 1.25rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    text-align: center;
-}
-.portrait-view .table {
-    --bs-table-bg: transparent;
-    --bs-table-striped-bg: rgba(255, 255, 255, 0.03);
-    --bs-table-border-color: transparent;
-}
-.portrait-view .table td, .portrait-view .table th {
-    vertical-align: middle;
-}
+.selection-panel { position: fixed; bottom: calc(0.5rem + env(safe-area-inset-bottom)); left: calc(1rem + env(safe-area-inset-left)); right: calc(1rem + env(safe-area-inset-right)); z-index: 1010; background-color: rgba(20, 30, 48, 0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 0.9rem 1.5rem; border-radius: 1.5rem; box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.2); max-width: 650px; margin: 0 auto; }
+@media (min-width: 576px) { .selection-panel { left: 50%; transform: translateX(-50%); width: calc(100% - 2rem); } }
+.selection-panel .btn-toggle { transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out; }
+
+#schedule-content, #consultation-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+#schedule-display.is-prompting { display: flex; justify-content: center; align-items: center; }
+.initial-prompt { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #64748b; padding: 2rem; }
+.prompt-icon { font-size: 4rem; line-height: 1; margin-bottom: 1rem; }
+.initial-prompt h3 { color: #cbd5e1; font-weight: bold; }
+.prompt-help { text-align: center; margin-top: 1.5rem; }
+.help-button { width: 40px; height: 40px; border-radius: 50%; background-color: rgba(71, 85, 105, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1; font-size: 1.5rem; font-weight: bold; cursor: pointer; transition: all 0.2s ease-in-out; }
+.help-button:hover { background-color: rgba(100, 116, 139, 0.8); transform: scale(1.1); }
+
+.schedule-day-card { background-color: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.5rem; }
+.schedule-day-header { font-size: 1.5rem; font-weight: bold; padding: 0.70rem 1.25rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); text-align: center; }
+.portrait-view .table { --bs-table-bg: transparent; --bs-table-striped-bg: rgba(255, 255, 255, 0.03); --bs-table-border-color: transparent; }
+.portrait-view .table td, .portrait-view .table th { vertical-align: middle; }
 .portrait-view .lesson-num-col { width: 10%; text-align: center; }
 .portrait-view .time-col { width: 30%; text-align: center; }
+.portrait-view .room-col { width: 25%; text-align: center; }
 
-/* HIDE HEADER AND REMOVE PADDING ON SMALL SCREENS (PORTRAIT) WHEN SCHEDULE IS SELECTED */
+.day-selector-container { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 1rem; padding: 1rem; width: 100%; }
+.day-selector-btn { width: 100%; max-width: 400px; font-size: 1.5rem; font-weight: 500; padding: 1rem; border-radius: 0.75rem; background-color: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1; transition: all 0.2s ease-in-out; }
+.day-selector-btn:hover { background-color: rgba(51, 65, 85, 0.9); border-color: rgba(255, 255, 255, 0.2); transform: translateY(-3px); color: #fff; }
+
 @media (max-width: 750px) {
-    .portrait-view.schedule-selected .header {
+    .portrait-view.schedule-selected .header,
+    .portrait-view.consultation-day-selected .header {
         display: none;
     }
-    .portrait-view.schedule-selected {
-        padding-top: calc(1rem + env(safe-area-inset-top)); /* Reduce padding when header is hidden */
+    .portrait-view.schedule-selected,
+    .portrait-view.consultation-day-selected {
+        padding-top: calc(1rem + env(safe-area-inset-top));
     }
 }
 
-/* --- Mobile Portrait Specifics --- */
-@media (max-width: 576px) and (orientation: portrait) {
-    html {
-        font-size: 14px;
-    }
-    .portrait-view .logo-img {
-        max-width: 180px;
-    }
+/* =================================== */
+/* === LANDSCAPE MODE STYLES === */
+/* =================================== */
 
+.landscape-view { padding: 1.5rem; padding-top: calc(2.0rem + env(safe-area-inset-top)); padding-left: calc(1.5rem + env(safe-area-inset-left)); padding-right: calc(1.5rem + env(safe-area-inset-right)); box-sizing: border-box; }
+.landscape-view .header-info-simple { display: flex; justify-content: space-between; align-items: center; font-size: 4.5rem; font-weight: bold; color: #cbd5e1; margin-bottom: -3rem; }
+.landscape-view .logo-img-landscape { max-height: 100px; height: auto; opacity: 0.9; }
+.landscape-view .header-datetime-landscape { display: flex; flex-direction: column; align-items: flex-end; font-size: 2.5rem; line-height: 1.3; }
+.landscape-view .main-title { font-weight: bold; margin-bottom: 1.4rem !important; font-size: 4rem; text-align: center; }
+.grade-pair-container { display: flex; flex-direction: column; justify-content: center; gap: 1.5rem; min-height: 70vh; }
+.grade-pair-container .card { background-color: rgba(15, 23, 42, 0.85); backdrop-filter: blur(200px); border: 1px solid rgba(255, 255, 255, 0.1); }
+.grade-pair-container .card-header { background-color: rgba(30, 41, 59, 0.8); font-weight: bold; padding: 0.75rem 1.25rem; }
+.grade-pair-container .card-body { padding: 0; overflow-x: auto; }
+.landscape-view .table { table-layout: fixed; width: 100%; --bs-table-bg: transparent; --bs-table-striped-bg: rgba(255, 255, 255, 0.03); --bs-table-border-color: rgba(255, 255, 255, 0.1); }
+.landscape-view .table td, .landscape-view .table th { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* =================================== */
+/* === SHARED COMPONENT STYLES === */
+/* =================================== */
+
+.current-lesson { background-color: rgba(53, 230, 118, 0.2) !important; border-left: 4px solid #33a15c !important; border-right: 4px solid #33a15c !important; }
+.next-lesson { background-color: rgba(137, 132, 219, 0.15) !important; border-left: 4px solid #5d5a8f !important; border-right: 4px solid #5d5a8f !important; }
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 1050; padding: 1rem; }
+.modal-content { background-color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; padding: 2rem; position: relative; max-width: 500px; width: 100%; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); color: #cbd5e1; }
+.modal-content h2 { font-weight: bold; color: #fff; margin-top: 0; }
+.modal-content hr { border-color: rgba(255, 255, 255, 0.1); margin: 1.5rem 0; }
+.modal-close { position: absolute; top: 1rem; right: 1.5rem; background: none; border: none; color: #94a3b8; font-size: 2.5rem; line-height: 1; cursor: pointer; transition: color 0.2s, transform 0.2s; }
+.modal-close:hover { color: #fff; transform: scale(1.1); }
+.legend { margin-top: 1rem; }
+.legend-item { display: flex; align-items: center; font-size: 1.2rem; margin-bottom: 0.75rem; }
+.legend-color-box { width: 25px; height: 25px; border-radius: 4px; margin-right: 1rem; }
+.legend-color-box.current { background-color: #22c55e; }
+.legend-color-box.next { background-color: #8b5cf6; }
+.content-spacer {
+    flex-shrink: 0;
+}
+
+/* =================================== */
+/* === RESPONSIVE OVERRIDES === */
+/* =================================== */
+
+@media (max-width: 576px) and (orientation: portrait) {
+    html { font-size: 14px; }
     .portrait-view .header {
         justify-content: center;
     }
-    .portrait-view .header-info {
-        display: none;
-    }
-
-    .selection-panel .form-label {
-        font-size: 0.8rem;
-    }
-    .selection-panel .form-select,
-    .selection-panel .btn {
-        font-size: 0.9rem;
-        padding-top: 0.6rem;
-        padding-bottom: 0.6rem;
-    }
-    .content-spacer {
-        height: calc(8rem + env(safe-area-inset-bottom));
-    }
+    .portrait-view .header-info { display: none; }
+    .selection-panel .form-label { font-size: 0.8rem; }
+    .selection-panel .form-select, .selection-panel .btn { font-size: 0.9rem; padding-top: 0.6rem; padding-bottom: 0.6rem; }
 }
 
-/* --- Landscape Mode Styles (Large Version) --- */
-.landscape-view {
-    padding: 1.5rem;
-    padding-top: calc(2.0rem + env(safe-area-inset-top));
-    padding-left: calc(1.5rem + env(safe-area-inset-left));
-    padding-right: calc(1.5rem + env(safe-area-inset-right));
-    box-sizing: border-box;
-}
-
-.landscape-view .header-info-simple {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 4.5rem;
-    font-weight: bold;
-    color: #cbd5e1;
-    margin-bottom: -3rem;
-}
-
-.landscape-view .logo-img-landscape {
-    max-height: 100px;
-    height: auto;
-    opacity: 0.9;
-}
-.landscape-view .header-datetime-landscape {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    font-size: 2.5rem;
-    line-height: 1.3;
-}
-
-.landscape-view .main-title {
-    font-weight: bold;
-    margin-bottom: 1.4rem !important;
-    font-size: 4rem;
-    text-align: center;
-}
-
-.grade-pair-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 1.5rem;
-    min-height: 70vh;
-}
-
-.grade-pair-container .card {
-    background-color: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(200px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-.grade-pair-container .card-header {
-    background-color: rgba(30, 41, 59, 0.8);
-    font-weight: bold;
-    padding: 0.75rem 1.25rem;
-}
-.grade-pair-container .card-body {
-    padding: 0;
-    overflow-x: auto;
-}
-
-.landscape-view .table {
-    table-layout: fixed;
-    width: 100%;
-    --bs-table-bg: transparent;
-    --bs-table-striped-bg: rgba(255, 255, 255, 0.03);
-    --bs-table-border-color: rgba(255, 255, 255, 0.1);
-}
-.landscape-view .table td,
-.landscape-view .table th {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* HIDE HEADER ON SMALL SCREENS (LANDSCAPE) */
 @media (max-height: 500px) and (orientation: landscape) {
-    .landscape-view .header-info-simple {
-        display: none;
-    }
-    .landscape-view .main-title {
-        display: none;
-    }
-    .landscape-view {
-        padding: 1rem;
-    }
-    html {
-        font-size: 13px;
-    }
+    html { font-size: 13px; }
+    .landscape-view { padding: 1rem; }
+    .landscape-view .header-info-simple, .landscape-view .main-title { display: none; }
 }
 
-/* --- Highlight Styles --- */
-.current-lesson {
-    background-color: rgba(53, 230, 118, 0.2) !important;
-    border-left: 4px solid #33a15c !important;
-    border-right: 4px solid #33a15c !important;
-}
-.next-lesson {
-    background-color: rgba(137, 132, 219, 0.15) !important;
-    border-left: 4px solid #5d5a8f !important;
-    border-right: 4px solid #5d5a8f !important;
-}
+/* =================================== */
+/* === SIDE NAVIGATION BUTTONS === */
+/* =================================== */
 
-/* --- Help Icon --- */
-.prompt-help {
-    text-align: center;
-    margin-top: 1.5rem;
-}
-
-.help-button {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: rgba(71, 85, 105, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #cbd5e1;
-    font-size: 1.5rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-}
-
-.help-button:hover {
-    background-color: rgba(100, 116, 139, 0.8);
-    transform: scale(1.1);
-}
-
-/* --- Modal Styles --- */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-}
-
-.modal-content {
-    background-color: #1e293b;
-    padding: 2rem;
-    border-radius: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    max-width: 650px;
-    width: calc(100% - 2rem);
-    position: relative;
-    color: #cbd5e1;
-}
-
-.modal-close {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    background: none;
-    border: none;
-    font-size: 2rem;
-    color: #94a3b8;
-    cursor: pointer;
-    line-height: 1;
-}
-.modal-content h4 {
-    font-weight: bold;
-    margin-bottom: 1rem;
-    color: #e2e8f0;
-}
-.modal-content hr {
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-/* --- Legend Styles --- */
-.legend-list {
-    list-style: none;
-    padding-left: 0;
-    margin-top: 1rem;
-}
-.legend-list li {
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.5rem;
-    font-size: 1.1rem;
-}
-.legend-color {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
-    margin-right: 10px;
-}
-.legend-color.current {
-    background-color: rgba(53, 230, 118, 0.4);
-    border: 1px solid #33a15c;
-}
-.legend-color.next {
-    background-color: rgba(137, 132, 219, 0.3);
-    border: 1px solid #5d5a8f;
-}
-
-/* --- Hide help icon when schedule is shown --- */
-.portrait-view.schedule-selected .initial-prompt,
-.portrait-view.schedule-selected .prompt-help {
+.side-nav-button {
     display: none;
-}
-
-/* --- Back Panel for Desktop --- */
-.back-panel {
-    display: none; /* Hidden by default and on mobile */
-}
-.back-panel button {
-    background-color: rgba(20, 30, 48, 0.75);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 2px solid rgba(255, 255, 255, 0.15); /* Thicker border */
-    color: #e2e8f0;
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1020;
+    width: 35px;
+    height: 350px;
+    background-color: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+    font-size: 2.5rem;
+    font-weight: 100;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
-    height: 400px; /* Increased height */
-    width: 50px; /* Added fixed width */
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border-radius: 0.75rem;
+    padding: 0;
+    line-height: 95px;
+    text-align: center;
 }
-.back-panel button:hover {
-    background-color: rgba(30, 41, 59, 0.9);
-    border-color: rgba(255, 255, 255, 0.25);
+.side-nav-button:hover {
+    background-color: rgba(51, 65, 85, 0.9);
+    transform: translateY(-50%) scale(1.05);
 }
-.back-panel svg {
-    width: 2rem;
-    height: 2rem;
-    stroke: #e2e8f0;
-    transition: transform 0.2s ease-in-out;
+#side-nav-left {
+    left: 1.1rem;
 }
- .back-panel button:hover svg {
-    transform: scale(1.1);
- }
+#side-nav-right {
+    right: 1.1rem;
+}
 
-
-/* --- Desktop-specific styles for the selection panel --- */
-@media (min-width: 768px) {
-    /* Increase font size for schedule tables on desktop */
-    .portrait-view .table {
-        font-size: 1.2rem;
-    }
-    .portrait-view .table td, .portrait-view .table th {
-         padding: 0.8rem 0.5rem;
-    }
-
-    .portrait-view.schedule-selected .container {
-        padding-bottom: 40vh;
-    }
-
-     #schedule-display.is-prompting {
-        padding-bottom: 15vh;
-    }
-
-    /* Styles for the panel when schedule is NOT selected */
-    .portrait-view:not(.schedule-selected) .selection-panel {
-        position: absolute;
-        top: 60%; /* Moved down slightly */
-        left: 50%;
-        transform: translate(-50%, -50%);
-        bottom: auto;
-        max-width: 650px;
-    }
-
-    /* When schedule IS selected on desktop, HIDE the main selection panel */
-    .portrait-view.schedule-selected .selection-panel {
-        display: none;
-    }
-
-    /* And SHOW the vertical 'back' button panels */
-    .portrait-view.schedule-selected .back-panel {
+@media (min-width: 1080px) and (orientation: portrait) {
+    .portrait-view.schedule-selected .side-nav-button,
+    .portrait-view.consultation-mode .side-nav-button {
         display: block;
-        position: fixed;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 1000;
-    }
-
-    #back-panel-left {
-        left: 0;
-    }
-    #back-panel-left button {
-        border-radius: 0 1.2rem 1.2rem 0;
-        border-left: none;
-    }
-
-    #back-panel-right {
-        right: 0;
-    }
-    #back-panel-right button {
-        border-radius: 1.2rem 0 0 1.2rem;
-        border-right: none;
-    }
-
-    .initial-prompt .prompt-help {
-        margin-top: 2.5rem;
-    }
-
-    .content-spacer {
-        display: none;
     }
 }
+
+.legend-item > span {
+    margin-left: 0.8rem;
+}
+
+/* ================================================================ */
+/* === CUSTOM: ФИНАЛЬНЫЕ ИСПРАВЛЕНИЯ ДЛЯ ПОРТРЕТНОГО РЕЖИМА === */
+/* ================================================================ */
+
+/* --- Плавный переход для самой панели (для всех экранов) --- */
+.selection-panel {
+    transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+}
+
+/* --- Логика для больших экранов --- */
+@media (min-width: 768px) and (min-height: 800px) and (orientation: portrait) {
+
+    /* 1. Задаем общее вертикальное центрирование для всего, что останется в потоке */
+    .portrait-view {
+        justify-content: center;
+    }
+
+    /* 2. "Вырываем" заголовок из потока и закрепляем наверху */
+    .portrait-view .header {
+        position: fixed; /* Закрепляем */
+        top: 0;
+        left: 0;
+        width: 100%;
+        box-sizing: border-box; /* Чтобы padding не ломал ширину */
+        padding: calc(1.5rem + env(safe-area-inset-top)) 2rem 1.5rem 2rem;
+        z-index: 10;
+        /* Важно: Убираем нижний отступ, так как он больше не в потоке */
+        margin-bottom: 0;
+    }
+
+    /* 3. Говорим контейнеру с иконкой не растягиваться */
+    .portrait-view .container {
+        flex-grow: 0;
+        /* Убираем верхний отступ, так как его роль выполняет отступ у body */
+        padding-top: 0;
+    }
+
+    /* 4. "Открепляем" панель выбора от низа и возвращаем в поток */
+    .selection-panel {
+        position: static !important;
+        transform: none !important;
+        margin-top: 2.5rem; /* Отступ от блока с иконкой */
+    }
+
+    /* 5. Прячем ненужный отступ-распорку */
+    .content-spacer {
+        display: none !important;
+    }
+
+    /* 6. Прячем панель ПОСЛЕ выбора класса или при переходе к консультациям */
+    .portrait-view.schedule-selected .selection-panel,
+    .portrait-view.consultation-mode .selection-panel {
+        opacity: 0;
+        transform: scale(0.9) !important;
+        pointer-events: none;
+    }
+}
+
+

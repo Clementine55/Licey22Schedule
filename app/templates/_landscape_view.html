@@ -1,0 +1,126 @@
+<!-- ================= LANDSCAPE VIEW ================= -->
+<div class="landscape-view">
+    <div class="container-fluid">
+        <div class="header-info-simple">
+            {% if logo_path %}<img src="{{ url_for('static', filename=logo_path) }}" alt="Логотип" class="logo-img-landscape">{% endif %}
+            <div class="header-datetime-landscape">
+                <span id="current-date-landscape">{{ current_date }}</span>
+                <span id="live-time-landscape">00:00:00</span>
+            </div>
+        </div>
+
+        {% if (schedule_for_today and schedule_for_today.landscape_slides) or consultations_for_today %}
+            <h1 class="main-title">{{ active_day_name }}</h1>
+            <div id="scheduleCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-pause="false" data-bs-interval="{{ carousel_interval * 1000 }}">
+                <div class="carousel-inner">
+                    {% if schedule_for_today and schedule_for_today.landscape_slides %}
+                        {% for slide_group in schedule_for_today.landscape_slides %}
+                        <div class="carousel-item {% if loop.first %}active{% endif %}">
+                            <div class="grade-pair-container">
+                                {% for grade_data in slide_group %}
+                                <div class="card">
+                                    <div class="card-header"><h4 class="m-0 text-center">{{ grade_data.grade_key }}</h4></div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-striped mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width: 3%;" class="text-center">№</th>
+                                                        <th style="width: 7%;" class="text-center">Время</th>
+                                                        {% for class_name in grade_data.class_names %}<th>{{ class_name }}</th>{% endfor %}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for row in grade_data.schedule_rows %}<tr data-time-start="{{ row['время'] }}" data-time-end="{{ row.get('end_time') }}">
+                                                        <td class="text-center">{{ row['урок'] }}</td>
+                                                        <td class="text-center">{{ row['время'] }}</td>
+                                                        {% for class_name in grade_data.class_names %}<td>{{ row.предметы.get(class_name, '') }}</td>{% endfor %}
+                                                    </tr>{% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if consultations_for_today %}
+                    <div class="carousel-item {% if not (schedule_for_today and schedule_for_today.landscape_slides) %}active{% endif %}">
+                        <div class="grade-pair-container">
+                            <div class="card consultation-card-landscape">
+                                <div class="card-header"><h4 class="m-0 text-center">Консультации на сегодня</h4></div>
+                                <div class="card-body" style="padding: 1rem;">
+                                    <div class="row">
+                                        {% set midpoint = (consultations_for_today|length / 2)|round(0, 'ceil')|int %}
+                                        {% set left_col = consultations_for_today[:midpoint] %}
+                                        {% set right_col = consultations_for_today[midpoint:] %}
+
+                                        <div class="col-lg-6">
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered table-striped mb-0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Учитель</th>
+                                                            <th style="width: 25%;" class="text-center">Время</th>
+                                                            <th style="width: 20%;" class="text-center">Кабинет</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for cons in left_col %}
+                                                        <tr data-time-start="{{ cons.get('start_time', '') }}" data-time-end="{{ cons.get('end_time', '') }}">
+                                                            <td>{{ cons.teacher }}</td>
+                                                            <td class="text-center">{{ cons.time }}</td>
+                                                            <td class="text-center">{{ cons.room }}</td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-lg-6">
+                                            {% if right_col %}
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered table-striped mb-0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Учитель</th>
+                                                            <th style="width: 25%;" class="text-center">Время</th>
+                                                            <th style="width: 20%;" class="text-center">Кабинет</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for cons in right_col %}
+                                                        <tr data-time-start="{{ cons.get('start_time', '') }}" data-time-end="{{ cons.get('end_time', '') }}">
+                                                            <td>{{ cons.teacher }}</td>
+                                                            <td class="text-center">{{ cons.time }}</td>
+                                                            <td class="text-center">{{ cons.room }}</td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        {% elif lessons_are_over %}
+            <div class="alert alert-primary text-center mt-4"><h4>Занятия и консультации на сегодня завершены.</h4></div>
+        {% elif is_weekend %}
+            <h1 class="main-title">Воскресенье</h1>
+            <div class="alert alert-info text-center mt-4"><h4>Сегодня выходной!</h4></div>
+        {% else %}
+            <div class="alert alert-warning text-center mt-4" role="alert">На сегодня расписания нет.</div>
+        {% endif %}
+    </div>
+</div>

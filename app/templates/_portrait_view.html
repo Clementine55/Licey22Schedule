@@ -1,0 +1,62 @@
+<div class="portrait-view">
+    <button id="side-nav-left" class="side-nav-button" title="Сброс выбора">&lsaquo;</button>
+    <button id="side-nav-right" class="side-nav-button" title="Сброс выбора">&rsaquo;</button>
+
+    <div class="container">
+        <header class="header">
+            {% if logo_path %}<img src="{{ url_for('static', filename=logo_path) }}" alt="Логотип" class="logo-img">{% endif %}
+            <div class="header-info">
+                <span id="current-date-portrait">{{ current_date }}</span>
+                <span id="live-time-portrait">00:00:00</span>
+            </div>
+        </header>
+
+        <div class="content-wrapper">
+            <div id="schedule-content">
+                <div id="schedule-display" class="is-prompting">
+                    <div class="initial-prompt">
+                        <div class="prompt-icon">📅</div>
+                        <h3>Расписание не выбрано</h3>
+                        <p>Используйте панель выбора</p>
+                        <div class="prompt-help"><button id="help-icon" class="help-button" aria-label="Помощь">?</button></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="consultation-content" style="display: none;">
+                <div id="consultation-day-selector" class="day-selector-container">
+                    </div>
+                <div id="consultation-list-display" style="display: none;">
+                    </div>
+            </div>
+        </div>
+
+        <div class="content-spacer"></div>
+
+    </div>
+    <div class="selection-panel">
+        <div id="selection-container">
+            <div id="class-selection-wrapper">
+                <div class="row g-2 align-items-end mb-3">
+                    <div class="col"><label for="grade-selector" class="form-label">Параллель</label><select id="grade-selector" class="form-select form-select-lg" autocomplete="off"><option selected disabled>--</option></select></div>
+                    <div class="col"><label for="class-selector" class="form-label">Класс</label><select id="class-selector" class="form-select form-select-lg" disabled autocomplete="off"><option selected disabled>--</option></select></div>
+                    <div class="col-auto"><button id="reset-button" class="btn btn-secondary btn-lg w-100">Сброс</button></div>
+                </div>
+            </div>
+             <div id="consultation-back-wrapper" style="display: none;">
+                 <div class="row g-2">
+                    <div class="col">
+                        <button id="back-to-days-btn" class="btn btn-info btn-lg w-100">‹ Назад к выбору дня</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-toggle-wrapper">
+                <div class="row g-2">
+                    <div class="col"><button id="show-schedule-btn" class="btn btn-primary btn-lg w-100 btn-toggle active">Расписание</button></div>
+                    <div class="col"><button id="show-consultations-btn" class="btn btn-secondary btn-lg w-100 btn-toggle">Консультации</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
