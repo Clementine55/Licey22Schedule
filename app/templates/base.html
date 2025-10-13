@@ -14,34 +14,32 @@
             background: linear-gradient(135deg, #0f172a, #1e293b, #334155);
             color: #e2e8f0;
             box-sizing: border-box;
-            display: flex; /* Используем flex для центрирования */
+            display: flex;
             justify-content: center;
             align-items: center;
             padding: 2rem;
         }
 
-        /* --- ИЗМЕНЕНИЕ: Контейнер для логотипа, который будет вверху --- */
+        /* --- ИСПРАВЛЕНИЕ: Центрирование логотипа --- */
         .header-logo-container {
             position: fixed;
             top: 50px;
-            left: 51%;
+            left: 50%; /* Изменено с 51% на 50% для идеального центра */
             transform: translateX(-50%);
             z-index: 1000;
         }
         .header-logo-container img {
-            max-height: 120px; /* Устанавливаем высоту */
+            max-height: 120px;
             width: auto;
         }
 
         .main-container {
             width: 100%;
-            max-width: 900px; /* Ограничиваем ширину на больших экранах */
+            max-width: 900px;
         }
     </style>
 </head>
 <body>
-
-    <!-- --- ИЗМЕНЕНИЕ: Добавляем блок для логотипа, если он передан --- -->
     {% if logo_path %}
     <div class="header-logo-container">
         <img src="{{ url_for('static', filename=logo_path) }}" alt="Логотип">

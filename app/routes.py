@@ -49,17 +49,16 @@ def index(schedule_name):
                                logo_path=Config.LOGO_FILE_PATH), 500
 
     active_day_name, current_date, current_time = time_service.get_current_day_and_time()
-    consultations_for_today = all_consultations.get(active_day_name, [])
     schedule_for_today = full_schedule.get(active_day_name)
-    lessons_are_over = False
 
-    if schedule_for_today and current_time:
+    today = datetime.today()
+    current_dt = datetime.combine(today, current_time)
+
+    # --- ФИЛЬТРАЦИЯ УРОКОВ ПО ВРЕМЕНИ ---
+    if schedule_for_today:
         initial_slides = schedule_for_today.get("landscape_slides", [])
-        initial_lessons_existed = bool(initial_slides)
-        today, current_dt = datetime.today(), datetime.combine(datetime.today(), current_time)
-
         active_grade_groups = []
-        if initial_lessons_existed:
+        if initial_slides:
             for slide in initial_slides:
                 for grade_data in slide:
                     start_dt = datetime.combine(today, grade_data['first_lesson_time']) - timedelta(
@@ -80,10 +79,51 @@ def index(schedule_name):
             else:
                 filtered_slides.append([g1])
                 i += 1
-
         schedule_for_today["landscape_slides"] = filtered_slides
-        if initial_lessons_existed and not filtered_slides:
-            lessons_are_over = True
+    else:
+        schedule_for_today = {"landscape_slides": []}
+
+    # --- ИСПРАВЛЕННАЯ ЛОГИКА ФИЛЬТРАЦИИ КОНСУЛЬТАЦИЙ (ВСЕЙ ТАБЛИЦЫ СРАЗУ) ---
+    raw_consultations_for_today = all_consultations.get(active_day_name, [])
+    consultations_for_today = []
+
+    if raw_consultations_for_today:
+        first_consultation_start_dt = datetime.combine(today, time_obj(23, 59))
+        last_consultation_end_dt = datetime.combine(today, time_obj(0, 0))
+
+        # Находим самое раннее начало и самое позднее окончание
+        for cons in raw_consultations_for_today:
+            start_time_str = cons.get('start_time')
+            end_time_str = cons.get('end_time')
+
+            try:
+                if start_time_str:
+                    h, m = map(int, start_time_str.split(':'))
+                    cons_start_dt = datetime.combine(today, time_obj(h, m))
+                    if cons_start_dt < first_consultation_start_dt:
+                        first_consultation_start_dt = cons_start_dt
+
+                if end_time_str:
+                    h, m = map(int, end_time_str.split(':'))
+                    cons_end_dt = datetime.combine(today, time_obj(h, m))
+                    if cons_end_dt > last_consultation_end_dt:
+                        last_consultation_end_dt = cons_end_dt
+            except (ValueError, TypeError):
+                continue
+
+        # Если мы нашли хотя бы одно валидное время
+        if last_consultation_end_dt.time() != time_obj(0, 0):
+            start_display_dt = first_consultation_start_dt - timedelta(minutes=Config.SHOW_BEFORE_START_MIN)
+            end_display_dt = last_consultation_end_dt + timedelta(minutes=Config.SHOW_AFTER_END_MIN)
+
+            # Показываем консультации только если текущее время находится в интервале
+            if start_display_dt <= current_dt <= end_display_dt:
+                consultations_for_today = raw_consultations_for_today
+
+    # --- ФИНАЛЬНАЯ ПРОВЕРКА, ЗАКОНЧИЛИСЬ ЛИ ЗАНЯТИЯ ---
+    lessons_are_over = False
+    if not schedule_for_today.get("landscape_slides") and not consultations_for_today:
+        lessons_are_over = True
 
     return render_template(
         'index.html',

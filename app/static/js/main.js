@@ -1,7 +1,7 @@
-// main.js - Final simplified version
+// main.js - Final version with unified highlighting logic
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Constants and variables ---
+    // --- Константы и переменные ---
     const { activeDayName, currentTime, refreshInterval, scheduleName } = window.APP_DATA;
     const gradeSelector = document.getElementById('grade-selector');
     const classSelector = document.getElementById('class-selector');
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const consultationListDisplay = document.getElementById('consultation-list-display');
     const viewToggleWrapper = document.getElementById('view-toggle-wrapper');
 
-    let fullSchedule = null, allConsultations = null, inactivityTimer;
+    let fullSchedule = null, allConsultations = null;
     let hours, minutes, seconds, timeDifference = 0;
     const initialScheduleDisplayHTML = scheduleDisplay.innerHTML;
     const STORAGE_KEY_GRADE = 'selectedGrade', STORAGE_KEY_CLASS = 'selectedClass';
@@ -44,14 +44,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initializeApp() {
+        portraitView.classList.add('initial-state');
+
         setupClock();
         setupUI();
         initializeModalHandlers();
         setupConsultationUI();
-        const isClassRestored = restoreUserSelection();
-        if (!isClassRestored) {
-            togglePortraitView('schedule');
-        }
+        restoreUserSelection();
         updateContentSpacer();
         setInterval(() => window.location.reload(true), refreshInterval * 1000);
     }
@@ -73,30 +72,23 @@ document.addEventListener('DOMContentLoaded', () => {
         showConsultationsBtn.addEventListener('click', () => togglePortraitView('consultations'));
 
         const panel = document.querySelector('.selection-panel');
-        if (panel) { // Keep the observer for mobile to prevent "jump"
+        const largePortraitQuery = window.matchMedia('(min-width: 768px) and (min-height: 800px) and (orientation: portrait)');
+
+        if (panel && !largePortraitQuery.matches) {
             new ResizeObserver(updateContentSpacer).observe(panel);
         }
 
         if (sideNavLeft && sideNavRight) {
             sideNavLeft.addEventListener('click', handleSideNavClick);
-            sideNavRight.addEventListener('click', handleSideNavClick);
         }
     }
 
     function updateContentSpacer() {
-        const spacer = document.querySelector('.content-spacer');
         const panel = document.querySelector('.selection-panel');
-        if (!spacer || !panel) return;
-
-        // On large screens, spacer is hidden by CSS, so we don't need to do anything.
-        const largePortraitQuery = window.matchMedia('(min-width: 768px) and (min-height: 800px) and (orientation: portrait)');
-        if (largePortraitQuery.matches) {
-            spacer.style.height = '0px';
-            return;
-        }
-
+        const spacer = document.querySelector('.content-spacer');
+        if (!panel || !spacer) return;
         const panelHeight = panel.offsetHeight;
-        spacer.style.height = `${panelHeight + 16}px`;
+        spacer.style.height = `calc(${panelHeight + 16}px + env(safe-area-inset-bottom))`;
     }
 
     function togglePortraitView(view) {
@@ -109,7 +101,11 @@ document.addEventListener('DOMContentLoaded', () => {
             showScheduleBtn.classList.remove('btn-secondary');
             showConsultationsBtn.classList.add('btn-secondary');
             showConsultationsBtn.classList.remove('btn-primary', 'active');
-        } else { // 'consultations' view
+
+            const isClassSelected = !!classSelector.value && classSelector.value !== '--' && !classSelector.disabled;
+            portraitView.classList.toggle('initial-state', !isClassSelected);
+
+        } else { // 'consultations'
             portraitView.classList.add('consultation-mode');
             scheduleContent.style.display = 'none';
             consultationContent.style.display = 'flex';
@@ -138,6 +134,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function showConsultationsForDay(day) {
         const consultationsForDay = allConsultations[day];
         if (!consultationsForDay?.length) return;
+
+        portraitView.classList.remove('initial-state');
+
         let tableHtml = `<div class="schedule-day-card"><div class="schedule-day-header">${day}</div><table class="table table-striped mb-0"><thead><tr><th>Учитель</th><th class="time-col">Время</th><th class="room-col">Кабинет</th></tr></thead><tbody>`;
         consultationsForDay.forEach(c => {
             tableHtml += `<tr data-time-start="${c.start_time || ''}" data-time-end="${c.end_time || ''}"><td>${c.teacher}</td><td class="text-center">${c.time}</td><td class="text-center">${c.room}</td></tr>`;
@@ -161,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
         classSelectionWrapper.style.display = 'none';
         viewToggleWrapper.style.display = 'block';
         portraitView.classList.remove('consultation-day-selected');
+        portraitView.classList.add('initial-state');
     }
 
     function scrollToActiveItem(containerId) {
@@ -173,14 +173,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function displayWeekSchedule(selectedClass) {
-        clearTimeout(inactivityTimer);
         portraitView.classList.toggle('schedule-selected', !!selectedClass);
+
         if (!selectedClass) {
             scheduleDisplay.innerHTML = initialScheduleDisplayHTML;
             scheduleDisplay.classList.add('is-prompting');
             initializeModalHandlers();
             return;
         }
+
         scheduleDisplay.classList.remove('is-prompting');
         let html = '<div class="row g-4">';
         const daysOrder = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
@@ -190,7 +191,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (dayData && dayData.lessons.some(l => l.предмет !== '—')) {
                 html += '<table class="table table-striped mb-0"><thead><tr><th class="lesson-num-col">№</th><th class="time-col">Время</th><th>Предмет</th></tr></thead><tbody>';
                 dayData.lessons.forEach(lesson => {
-                    html += `<tr data-time-start="${lesson.время || ''}" data-time-end="${lesson.end_time || ''}"><td class="lesson-num-col">${lesson.урок}</td><td class="time-col">${lesson.время}</td><td>${lesson.предмет}</td></tr>`;
+                    const startTimeAttr = lesson.время ? `data-time-start="${lesson.время}"` : '';
+                    const endTimeAttr = lesson.end_time ? `data-time-end="${lesson.end_time}"` : '';
+                    html += `<tr ${startTimeAttr} ${endTimeAttr}><td class="lesson-num-col">${lesson.урок}</td><td class="time-col">${lesson.время}</td><td>${lesson.предмет}</td></tr>`;
                 });
                 html += '</tbody></table>';
             } else {
@@ -202,24 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
         scheduleDisplay.innerHTML = html;
         highlightCurrentItems();
         if (isMobileDevice()) scrollToActiveItem('day-' + activeDayName);
-    }
-
-    function restoreUserSelection() {
-        if (isMobileDevice()) {
-            const savedGrade = localStorage.getItem(STORAGE_KEY_GRADE);
-            const savedClass = localStorage.getItem(STORAGE_KEY_CLASS);
-            if (savedGrade) {
-                gradeSelector.value = savedGrade;
-                populateClassSelector(savedGrade);
-                if (savedClass) {
-                    classSelector.value = savedClass;
-                    displayWeekSchedule(savedClass);
-                    return true;
-                }
-            }
-        }
-        displayWeekSchedule(null);
-        return false;
     }
 
     function populateGradeSelector() {
@@ -247,21 +232,57 @@ document.addEventListener('DOMContentLoaded', () => {
         classSelector.disabled = false;
     }
 
-    function handleGradeChange(e) { populateClassSelector(e.target.value); classSelector.selectedIndex = 0; displayWeekSchedule(null); if (isMobileDevice()) { localStorage.removeItem(STORAGE_KEY_CLASS); localStorage.setItem(STORAGE_KEY_GRADE, e.target.value); } }
-    function handleClassChange(e) { const selectedClass = e.target.value; displayWeekSchedule(selectedClass); if (isMobileDevice()) { localStorage.setItem(STORAGE_KEY_GRADE, gradeSelector.value); localStorage.setItem(STORAGE_KEY_CLASS, selectedClass); } }
+    function handleGradeChange(e) {
+        populateClassSelector(e.target.value);
+        classSelector.selectedIndex = 0;
+        displayWeekSchedule(null);
+        if (isMobileDevice()) {
+            localStorage.removeItem(STORAGE_KEY_CLASS);
+            localStorage.setItem(STORAGE_KEY_GRADE, e.target.value);
+        }
+    }
+
+    function handleClassChange(e) {
+        const selectedClass = e.target.value;
+        displayWeekSchedule(selectedClass);
+        if (isMobileDevice()) {
+            localStorage.setItem(STORAGE_KEY_GRADE, gradeSelector.value);
+            localStorage.setItem(STORAGE_KEY_CLASS, selectedClass);
+        }
+        portraitView.classList.remove('initial-state');
+    }
 
     function handleReset() {
-        clearTimeout(inactivityTimer);
         gradeSelector.selectedIndex = 0;
         classSelector.innerHTML = '<option selected disabled>--</option>';
         classSelector.disabled = true;
+
         portraitView.classList.remove('consultation-day-selected');
         displayWeekSchedule(null);
         togglePortraitView('schedule');
+
         if (isMobileDevice()) {
             localStorage.removeItem(STORAGE_KEY_GRADE);
             localStorage.removeItem(STORAGE_KEY_CLASS);
         }
+        portraitView.classList.add('initial-state');
+    }
+
+    function restoreUserSelection() {
+        if (isMobileDevice()) {
+            const savedGrade = localStorage.getItem(STORAGE_KEY_GRADE);
+            const savedClass = localStorage.getItem(STORAGE_KEY_CLASS);
+            if (savedGrade && savedClass) {
+                gradeSelector.value = savedGrade;
+                populateClassSelector(savedGrade);
+                classSelector.value = savedClass;
+                displayWeekSchedule(savedClass);
+                portraitView.classList.remove('initial-state');
+                return true;
+            }
+        }
+        displayWeekSchedule(null);
+        return false;
     }
 
     function setupClock() {
@@ -288,13 +309,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function highlightCurrentItems() {
         const currentTotalMinutes = hours * 60 + minutes;
-        const applyHighlighting = (selector) => {
-            const elements = Array.from(document.querySelectorAll(selector));
-            if (elements.length === 0) return;
+
+        const applyHighlighting = (elements) => {
+            if (!elements || elements.length === 0) return;
+
             elements.forEach(el => el.classList.remove('current-lesson', 'next-lesson'));
-            const items = elements
-                .map(el => ({ element: el, startMinutes: parseTimeToMinutes(el.dataset.timeStart), endMinutes: parseTimeToMinutes(el.dataset.timeEnd) }))
+
+            const items = Array.from(elements)
+                .map(el => ({
+                    element: el,
+                    startMinutes: parseTimeToMinutes(el.dataset.timeStart),
+                    endMinutes: parseTimeToMinutes(el.dataset.timeEnd)
+                }))
                 .filter(item => item.startMinutes !== null && item.endMinutes !== null);
+
             let nextStartTime = Infinity;
             items.forEach(item => {
                 if (currentTotalMinutes >= item.startMinutes && currentTotalMinutes < item.endMinutes) {
@@ -304,6 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     nextStartTime = item.startMinutes;
                 }
             });
+
             if (nextStartTime !== Infinity) {
                 items.forEach(item => {
                     if (item.startMinutes === nextStartTime) {
@@ -312,18 +341,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         };
-        applyHighlighting('#scheduleCarousel tr[data-time-start]');
-        applyHighlighting(`#day-${activeDayName} tr[data-time-start]`);
-        applyHighlighting('#consultation-list-display tr[data-time-start]');
+
+        // --- ИСПРАВЛЕНИЕ: Собираем все строки консультаций в один массив для корректного поиска ---
+        const allConsultationRows = [
+            ...document.querySelectorAll('#consultations-table-left tr[data-time-start]'),
+            ...document.querySelectorAll('#consultations-table-right tr[data-time-start]')
+        ];
+
+        // Подсветка для всех таблиц с уроками
+        document.querySelectorAll('table[id^="lessons-table-"]').forEach(table => {
+            applyHighlighting(table.querySelectorAll('tr[data-time-start]'));
+        });
+
+        // Единая подсветка для всех консультаций
+        applyHighlighting(allConsultationRows);
+
+        // Подсветка для портретного режима
+        applyHighlighting(document.querySelectorAll(`#day-${activeDayName} tr[data-time-start]`));
+        applyHighlighting(document.querySelectorAll('#consultation-list-display tr[data-time-start]'));
     }
 
     function isMobileDevice() { return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent); }
+
     function parseTimeToMinutes(timeStr) {
         if (!timeStr || typeof timeStr !== 'string') return null;
         const match = timeStr.match(/(\d{1,2})[.:](\d{2})/);
         return match ? parseInt(match[1], 10) * 60 + parseInt(match[2], 10) : null;
     }
-    function initializeModalHandlers() { const helpIcon = document.getElementById('help-icon'); const helpModal = document.getElementById('help-modal'); const closeModal = document.getElementById('close-modal'); if (helpIcon && helpModal && closeModal) { helpIcon.addEventListener('click', () => { helpModal.style.display = 'flex'; }); closeModal.addEventListener('click', () => { helpModal.style.display = 'none'; }); helpModal.addEventListener('click', (e) => { if (e.target === helpModal) helpModal.style.display = 'none'; }); } }
+
+    function initializeModalHandlers() {
+        const helpIcon = document.getElementById('help-icon');
+        const helpModal = document.getElementById('help-modal');
+        const closeModal = document.getElementById('close-modal');
+        if (helpIcon && helpModal && closeModal) {
+            helpIcon.addEventListener('click', () => { helpModal.style.display = 'flex'; });
+            closeModal.addEventListener('click', () => { helpModal.style.display = 'none'; });
+            helpModal.addEventListener('click', (e) => { if (e.target === helpModal) helpModal.style.display = 'none'; });
+        }
+    }
 
     main();
 });
+

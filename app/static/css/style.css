@@ -2,6 +2,12 @@
 /* === BASE & GLOBAL STYLES === */
 /* =================================== */
 
+/* ИСПРАВЛЕНИЕ: Добавляем кастомные цвета для кнопок */
+:root {
+    --custom-dark-blue: #2d435c; /* Новый темный синий */
+    --custom-dark-blue-hover: #344d69; /* Чуть светлее при наведении */
+}
+
 html, body { min-height: 100vh; margin: 0; padding: 0; }
 body { color: #e2e8f0; background: linear-gradient(135deg, #0f172a, #1e293b, #334155); }
 #live-time-portrait, #live-time-landscape { font-variant-numeric: tabular-nums; }
@@ -53,6 +59,26 @@ body { color: #e2e8f0; background: linear-gradient(135deg, #0f172a, #1e293b, #33
 @media (min-width: 576px) { .selection-panel { left: 50%; transform: translateX(-50%); width: calc(100% - 2rem); } }
 .selection-panel .btn-toggle { transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out; }
 
+/* ИСПРАВЛЕНИЕ: Применяем новые цвета к кнопкам */
+#show-schedule-btn.btn-primary.active {
+    background-color: var(--custom-dark-blue) !important;
+    border-color: var(--custom-dark-blue) !important;
+}
+#show-consultations-btn.btn-primary.active {
+    background-color: var(--custom-dark-blue) !important;
+    border-color: var(--custom-dark-blue) !important;
+}
+#back-to-days-btn {
+    background-color: var(--custom-dark-blue) !important;
+    border-color: var(--custom-dark-blue) !important;
+    color: white !important;
+}
+#back-to-days-btn:hover {
+    background-color: var(--custom-dark-blue-hover) !important;
+    border-color: var(--custom-dark-blue-hover) !important;
+}
+
+
 #schedule-content, #consultation-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
 #schedule-display.is-prompting { display: flex; justify-content: center; align-items: center; }
 .initial-prompt { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #64748b; padding: 2rem; }
@@ -75,15 +101,14 @@ body { color: #e2e8f0; background: linear-gradient(135deg, #0f172a, #1e293b, #33
 .day-selector-btn:hover { background-color: rgba(51, 65, 85, 0.9); border-color: rgba(255, 255, 255, 0.2); transform: translateY(-3px); color: #fff; }
 
 @media (max-width: 750px) {
-    .portrait-view.schedule-selected .header,
-    .portrait-view.consultation-day-selected .header {
+    .portrait-view:not(.initial-state) .header {
         display: none;
     }
-    .portrait-view.schedule-selected,
-    .portrait-view.consultation-day-selected {
+    .portrait-view:not(.initial-state) {
         padding-top: calc(1rem + env(safe-area-inset-top));
     }
 }
+
 
 /* =================================== */
 /* === LANDSCAPE MODE STYLES === */
@@ -207,21 +232,19 @@ body { color: #e2e8f0; background: linear-gradient(135deg, #0f172a, #1e293b, #33
 
     /* 2. "Вырываем" заголовок из потока и закрепляем наверху */
     .portrait-view .header {
-        position: fixed; /* Закрепляем */
+        position: fixed;
         top: 0;
         left: 0;
         width: 100%;
-        box-sizing: border-box; /* Чтобы padding не ломал ширину */
+        box-sizing: border-box;
         padding: calc(1.5rem + env(safe-area-inset-top)) 2rem 1.5rem 2rem;
         z-index: 10;
-        /* Важно: Убираем нижний отступ, так как он больше не в потоке */
         margin-bottom: 0;
     }
 
     /* 3. Говорим контейнеру с иконкой не растягиваться */
     .portrait-view .container {
         flex-grow: 0;
-        /* Убираем верхний отступ, так как его роль выполняет отступ у body */
         padding-top: 0;
     }
 
@@ -229,7 +252,7 @@ body { color: #e2e8f0; background: linear-gradient(135deg, #0f172a, #1e293b, #33
     .selection-panel {
         position: static !important;
         transform: none !important;
-        margin-top: 2.5rem; /* Отступ от блока с иконкой */
+        margin-top: 2.5rem;
     }
 
     /* 5. Прячем ненужный отступ-распорку */
@@ -245,5 +268,4 @@ body { color: #e2e8f0; background: linear-gradient(135deg, #0f172a, #1e293b, #33
         pointer-events: none;
     }
 }
-
 

@@ -9,20 +9,25 @@
             </div>
         </div>
 
-        {% if (schedule_for_today and schedule_for_today.landscape_slides) or consultations_for_today %}
+        <!-- ИСПРАВЛЕНИЕ: Показываем день недели всегда, кроме выходного -->
+        {% if not is_weekend %}
             <h1 class="main-title">{{ active_day_name }}</h1>
+        {% endif %}
+
+        {% if (schedule_for_today and schedule_for_today.landscape_slides) or consultations_for_today %}
             <div id="scheduleCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-pause="false" data-bs-interval="{{ carousel_interval * 1000 }}">
                 <div class="carousel-inner">
                     {% if schedule_for_today and schedule_for_today.landscape_slides %}
                         {% for slide_group in schedule_for_today.landscape_slides %}
-                        <div class="carousel-item {% if loop.first %}active{% endif %}">
+                        {% set outer_loop = loop %}
+                        <div class="carousel-item {% if outer_loop.first %}active{% endif %}">
                             <div class="grade-pair-container">
                                 {% for grade_data in slide_group %}
                                 <div class="card">
                                     <div class="card-header"><h4 class="m-0 text-center">{{ grade_data.grade_key }}</h4></div>
                                     <div class="card-body">
                                         <div class="table-responsive">
-                                            <table class="table table-bordered table-striped mb-0">
+                                            <table id="lessons-table-{{ outer_loop.index0 }}-{{ loop.index0 }}" class="table table-bordered table-striped mb-0">
                                                 <thead>
                                                     <tr>
                                                         <th style="width: 3%;" class="text-center">№</th>
@@ -60,7 +65,7 @@
 
                                         <div class="col-lg-6">
                                             <div class="table-responsive">
-                                                <table class="table table-bordered table-striped mb-0">
+                                                <table id="consultations-table-left" class="table table-bordered table-striped mb-0">
                                                     <thead>
                                                         <tr>
                                                             <th>Учитель</th>
@@ -84,7 +89,7 @@
                                         <div class="col-lg-6">
                                             {% if right_col %}
                                             <div class="table-responsive">
-                                                <table class="table table-bordered table-striped mb-0">
+                                                <table id="consultations-table-right" class="table table-bordered table-striped mb-0">
                                                     <thead>
                                                         <tr>
                                                             <th>Учитель</th>
@@ -114,13 +119,23 @@
 
                 </div>
             </div>
+
         {% elif lessons_are_over %}
-            <div class="alert alert-primary text-center mt-4"><h4>Занятия и консультации на сегодня завершены.</h4></div>
+            <div class="d-flex justify-content-center align-items-center" style="min-height: 50vh;">
+                <div class="alert alert-primary text-center"><h4>Занятия и консультации на сегодня завершены.</h4></div>
+            </div>
         {% elif is_weekend %}
-            <h1 class="main-title">Воскресенье</h1>
-            <div class="alert alert-info text-center mt-4"><h4>Сегодня выходной!</h4></div>
+            <div class="d-flex justify-content-center align-items-center" style="min-height: 60vh;">
+                <div>
+                    <h1 class="main-title">Воскресенье</h1>
+                    <div class="alert alert-info text-center"><h4>Сегодня выходной!</h4></div>
+                </div>
+            </div>
         {% else %}
-            <div class="alert alert-warning text-center mt-4" role="alert">На сегодня расписания нет.</div>
+            <div class="d-flex justify-content-center align-items-center" style="min-height: 60vh;">
+                <div class="alert alert-warning text-center" role="alert">На сегодня расписания нет.</div>
+            </div>
         {% endif %}
     </div>
 </div>
+
