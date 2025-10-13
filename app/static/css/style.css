@@ -141,8 +141,8 @@ body { color: #e2e8f0; background: linear-gradient(135deg, #0f172a, #1e293b, #33
 .legend { margin-top: 1rem; }
 .legend-item { display: flex; align-items: center; font-size: 1.2rem; margin-bottom: 0.75rem; }
 .legend-color-box { width: 25px; height: 25px; border-radius: 4px; margin-right: 1rem; }
-.legend-color-box.current { background-color: #22c55e; }
-.legend-color-box.next { background-color: #8b5cf6; }
+.legend-color-box.current { background-color: rgba(53, 230, 118, 0.7); }
+.legend-color-box.next { background-color: rgba(137, 132, 219, 0.65); }
 .content-spacer {
     flex-shrink: 0;
 }
