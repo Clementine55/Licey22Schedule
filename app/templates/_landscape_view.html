@@ -68,16 +68,16 @@
                                                 <table id="consultations-table-left" class="table table-bordered table-striped mb-0">
                                                     <thead>
                                                         <tr>
+                                                            <th style="width: 20%;" class="text-center">Время</th>
                                                             <th>Учитель</th>
-                                                            <th style="width: 25%;" class="text-center">Время</th>
                                                             <th style="width: 20%;" class="text-center">Кабинет</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
                                                         {% for cons in left_col %}
                                                         <tr data-time-start="{{ cons.get('start_time', '') }}" data-time-end="{{ cons.get('end_time', '') }}">
-                                                            <td>{{ cons.teacher }}</td>
                                                             <td class="text-center">{{ cons.time }}</td>
+                                                            <td>{{ cons.teacher }}</td>
                                                             <td class="text-center">{{ cons.room }}</td>
                                                         </tr>
                                                         {% endfor %}
@@ -92,16 +92,16 @@
                                                 <table id="consultations-table-right" class="table table-bordered table-striped mb-0">
                                                     <thead>
                                                         <tr>
+                                                            <th style="width: 20%;" class="text-center">Время</th>
                                                             <th>Учитель</th>
-                                                            <th style="width: 25%;" class="text-center">Время</th>
                                                             <th style="width: 20%;" class="text-center">Кабинет</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
                                                         {% for cons in right_col %}
                                                         <tr data-time-start="{{ cons.get('start_time', '') }}" data-time-end="{{ cons.get('end_time', '') }}">
-                                                            <td>{{ cons.teacher }}</td>
                                                             <td class="text-center">{{ cons.time }}</td>
+                                                            <td>{{ cons.teacher }}</td>
                                                             <td class="text-center">{{ cons.room }}</td>
                                                         </tr>
                                                         {% endfor %}

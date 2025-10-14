@@ -1,0 +1,252 @@
+/* =================================== */
+/* === PORTRAIT MODE STYLES === */
+/* =================================== */
+
+.portrait-view {
+    position: relative;
+    flex-direction: column;
+    min-height: 100vh;
+    box-sizing: border-box;
+    padding-top: calc(1.5rem + env(safe-area-inset-top));
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    transition: padding-top 0.3s ease;
+}
+.portrait-view .container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+.content-wrapper { flex-grow: 1; display: flex; flex-direction: column; }
+
+.portrait-view .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 0 1rem;
+    transition: all 0.3s ease-in-out;
+}
+.portrait-view .logo-img {
+    display: block;
+    max-width: 240px;
+    height: auto;
+    opacity: 0.9;
+}
+.portrait-view .header-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-weight: bold;
+    font-size: 1.8rem;
+    line-height: 1.4;
+    color: #cbd5e1;
+}
+
+.selection-panel {
+    position: fixed;
+    bottom: calc(0.5rem + env(safe-area-inset-bottom));
+    left: calc(1rem + env(safe-area-inset-left));
+    right: calc(1rem + env(safe-area-inset-right));
+    z-index: 1010; background-color: rgba(20, 30, 48, 0.75);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.9rem 1.5rem;
+    border-radius: 1.5rem;
+    box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.2);
+    max-width: 650px; margin: 0 auto;
+}
+@media (min-width: 576px) { .selection-panel { left: 50%; transform: translateX(-50%); width: calc(100% - 2rem); } }
+.selection-panel .btn-toggle { transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out; }
+
+/* ИСПРАВЛЕНИЕ: Применяем новые цвета к кнопкам */
+#show-schedule-btn.btn-primary.active {
+    background-color: var(--custom-dark-blue) !important;
+    border-color: var(--custom-dark-blue) !important;
+}
+#show-consultations-btn.btn-primary.active {
+    background-color: var(--custom-dark-blue) !important;
+    border-color: var(--custom-dark-blue) !important;
+}
+
+#back-to-days-btn {
+    background-color: var(--custom-dark-blue) !important;
+    border-color: var(--custom-dark-blue) !important;
+    color: white !important;
+}
+#back-to-days-btn:hover {
+    background-color: var(--custom-dark-blue-hover) !important;
+    border-color: var(--custom-dark-blue-hover) !important;
+}
+
+#schedule-content, #consultation-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+#schedule-display.is-prompting { display: flex; justify-content: center; align-items: center; }
+
+.initial-prompt {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #64748b;
+    padding: 2rem;
+}
+.prompt-icon { font-size: 4rem; line-height: 1; margin-bottom: 1rem; }
+.initial-prompt h3 { color: #cbd5e1; font-weight: bold; }
+.prompt-help { text-align: center; margin-top: 1.5rem; }
+.help-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(71, 85, 105, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+.help-button:hover { background-color: rgba(100, 116, 139, 0.8); transform: scale(1.1); }
+
+.schedule-day-card {
+    background-color: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+}
+.schedule-day-header {
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 0.70rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.portrait-view .table {
+    --bs-table-bg: transparent;
+    --bs-table-striped-bg: rgba(255, 255, 255, 0.03);
+    --bs-table-border-color: transparent;
+}
+.portrait-view .table td, .portrait-view .table th { vertical-align: middle; }
+.portrait-view .lesson-num-col { width: 10%; text-align: center; }
+.portrait-view .time-col { width: 30%; text-align: center; }
+.portrait-view .room-col { width: 25%; text-align: center; }
+
+.day-selector-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    width: 100%;
+}
+.day-selector-btn {
+    width: 100%;
+    max-width: 400px;
+    font-size: 1.5rem;
+    font-weight: 500;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    background-color: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+    transition: all 0.2s ease-in-out;
+}
+.day-selector-btn:hover {
+    background-color: rgba(51, 65, 85, 0.9);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-3px);
+    color: #fff;
+}
+
+@media (max-width: 750px) {
+    .portrait-view:not(.initial-state) .header {
+        display: none;
+    }
+    .portrait-view:not(.initial-state) {
+        padding-top: calc(1rem + env(safe-area-inset-top));
+    }
+}
+
+/* ================================================================ */
+/* === CUSTOM: ФИНАЛЬНЫЕ ИСПРАВЛЕНИЯ ДЛЯ ПОРТРЕТНОГО РЕЖИМА === */
+/* ================================================================ */
+
+/* --- Плавный переход для самой панели (для всех экранов) --- */
+.selection-panel {
+    transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+}
+
+/* --- Логика для больших экранов --- */
+@media (min-width: 768px) and (min-height: 800px) and (orientation: portrait) {
+
+    /* 1. Задаем общее вертикальное центрирование для всего, что останется в потоке */
+    .portrait-view {
+        justify-content: center;
+    }
+
+    /* 2. "Вырываем" заголовок из потока и закрепляем наверху */
+    .portrait-view .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        box-sizing: border-box;
+        padding: calc(1.5rem + env(safe-area-inset-top)) 2rem 1.5rem 2rem;
+        z-index: 10;
+        margin-bottom: 0;
+    }
+
+    /* 3. Говорим контейнеру с иконкой не растягиваться */
+    .portrait-view .container {
+        flex-grow: 0;
+        padding-top: 0;
+    }
+
+    /* 4. "Открепляем" панель выбора от низа и возвращаем в поток */
+    .selection-panel {
+        position: static !important;
+        transform: none !important;
+        margin-top: 2.5rem;
+    }
+
+    /* 5. Прячем ненужный отступ-распорку */
+    .content-spacer {
+        display: none !important;
+    }
+
+    /* 6. Прячем панель ПОСЛЕ выбора класса или при переходе к консультациям */
+    .portrait-view.schedule-selected .selection-panel,
+    .portrait-view.consultation-mode .selection-panel {
+        opacity: 0;
+        transform: scale(0.9) !important;
+        pointer-events: none;
+    }
+}
+
+/* =================================== */
+/* === RESPONSIVE OVERRIDES === */
+/* =================================== */
+
+@media (max-width: 576px) and (orientation: portrait) {
+    html { font-size: 14px; }
+    .portrait-view .header {
+        justify-content: center;
+    }
+    .portrait-view .header-info { display: none; }
+    .selection-panel .form-label { font-size: 0.8rem; }
+    .selection-panel .form-select, .selection-panel .btn {
+        font-size: 0.9rem;
+        padding-top: 0.6rem;
+        padding-bottom: 0.6rem;
+    }
+}

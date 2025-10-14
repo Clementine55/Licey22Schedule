@@ -35,7 +35,7 @@ class Config:
 
     LOGO_FILE_PATH = os.getenv('LOGO_FILE_PATH', 'img/logo.png')
     CACHE_DURATION = int(os.getenv('CACHE_DURATION', 900))
-    CAROUSEL_INTERVAL = int(os.getenv('CAROUSEL_INTERVAL', 7))
+    CAROUSEL_INTERVAL = int(os.getenv('CAROUSEL_INTERVAL', 8))
     SHOW_BEFORE_START_MIN = int(os.getenv('SHOW_BEFORE_START_MIN', 60))
     SHOW_AFTER_END_MIN = int(os.getenv('SHOW_AFTER_END_MIN', 30))
     REGION_TIMEDELTA = int(os.getenv('REGION_TIMEDELTA', 7))

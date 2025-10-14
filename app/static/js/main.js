@@ -137,9 +137,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         portraitView.classList.remove('initial-state');
 
-        let tableHtml = `<div class="schedule-day-card"><div class="schedule-day-header">${day}</div><table class="table table-striped mb-0"><thead><tr><th>Учитель</th><th class="time-col">Время</th><th class="room-col">Кабинет</th></tr></thead><tbody>`;
+        let tableHtml = `<div class="schedule-day-card"><div class="schedule-day-header">${day}</div><table class="table table-striped mb-0"><thead><tr><th class="time-col">Время</th><th>Учитель</th><th class="room-col">Кабинет</th></tr></thead><tbody>`;
         consultationsForDay.forEach(c => {
-            tableHtml += `<tr data-time-start="${c.start_time || ''}" data-time-end="${c.end_time || ''}"><td>${c.teacher}</td><td class="text-center">${c.time}</td><td class="text-center">${c.room}</td></tr>`;
+            tableHtml += `<tr data-time-start="${c.start_time || ''}" data-time-end="${c.end_time || ''}"><td class="text-center">${c.time}</td><td>${c.teacher}</td><td class="text-center">${c.room}</td></tr>`;
         });
         tableHtml += `</tbody></table></div>`;
         consultationListDisplay.innerHTML = tableHtml;

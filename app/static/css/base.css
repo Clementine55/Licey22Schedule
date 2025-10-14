@@ -1,0 +1,29 @@
+/* =================================== */
+/* === BASE & GLOBAL STYLES === */
+/* =================================== */
+
+/* ИСПРАВЛЕНИЕ: Добавляем кастомные цвета для кнопок */
+:root {
+    --custom-dark-blue: #2d435c; /* Новый темный синий */
+    --custom-dark-blue-hover: #344d69; /* Чуть светлее при наведении */
+}
+
+html, body { min-height: 100vh; margin: 0; padding: 0; }
+body {
+    color: #e2e8f0;
+    background: linear-gradient(135deg, #0f172a, #1e293b, #334155);
+}
+
+#live-time-portrait, #live-time-landscape { font-variant-numeric: tabular-nums; }
+
+/* =================================== */
+/* === LAYOUT MODE SWITCHER === */
+/* =================================== */
+
+.landscape-view { display: block; }
+.portrait-view { display: none; }
+
+@media (orientation: portrait) {
+    .landscape-view { display: none; }
+    .portrait-view { display: flex; }
+}
