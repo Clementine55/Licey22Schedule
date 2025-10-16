@@ -36,11 +36,13 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {% for row in grade_data.schedule_rows %}<tr data-time-start="{{ row['время'] }}" data-time-end="{{ row.get('end_time') }}">
+                                                    {% for row in grade_data.schedule_rows %}
+                                                    <tr data-time-start="{{ row.start_time }}" data-time-end="{{ row.end_time }}">
                                                         <td class="text-center">{{ row['урок'] }}</td>
                                                         <td class="text-center">{{ row['время'] }}</td>
                                                         {% for class_name in grade_data.class_names %}<td>{{ row.предметы.get(class_name, '') }}</td>{% endfor %}
-                                                    </tr>{% endfor %}
+                                                    </tr>
+                                                    {% endfor %}
                                                 </tbody>
                                             </table>
                                         </div>

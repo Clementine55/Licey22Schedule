@@ -31,6 +31,17 @@
         .header-logo-container img {
             max-height: 120px;
             width: auto;
+            transition: max-height 0.3s ease-in-out;
+        }
+
+        /* --- УСЛОВИЕ: ЕСЛИ ЭКРАН УЖЕ, ЧЕМ 576px (ТЕЛЕФОН) --- */
+        @media (max-width: 576px) {
+            .header-logo-container {
+                top: 40px; /* Поднимаем логотип чуть выше на мобильных */
+            }
+            .header-logo-container img {
+                max-height: 90px; /* <-- Устанавливаем УМЕНЬШЕННЫЙ размер для мобильных */
+            }
         }
 
         .main-container {

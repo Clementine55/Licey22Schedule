@@ -191,7 +191,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (dayData && dayData.lessons.some(l => l.предмет !== '—')) {
                 html += '<table class="table table-striped mb-0"><thead><tr><th class="lesson-num-col">№</th><th class="time-col">Время</th><th>Предмет</th></tr></thead><tbody>';
                 dayData.lessons.forEach(lesson => {
-                    const startTimeAttr = lesson.время ? `data-time-start="${lesson.время}"` : '';
+
+                    const startTimeAttr = lesson.start_time ? `data-time-start="${lesson.start_time}"` : '';
                     const endTimeAttr = lesson.end_time ? `data-time-end="${lesson.end_time}"` : '';
                     html += `<tr ${startTimeAttr} ${endTimeAttr}><td class="lesson-num-col">${lesson.урок}</td><td class="time-col">${lesson.время}</td><td>${lesson.предмет}</td></tr>`;
                 });
@@ -240,6 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.removeItem(STORAGE_KEY_CLASS);
             localStorage.setItem(STORAGE_KEY_GRADE, e.target.value);
         }
+        portraitView.classList.add('initial-state');
     }
 
     function handleClassChange(e) {
