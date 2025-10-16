@@ -1,4 +1,4 @@
-<!-- ================= LANDSCAPE VIEW ================= -->
+<!-- app/templates/_landscape_view.html -->
 <div class="landscape-view">
     <div class="container-fluid">
         <div class="header-info-simple">
@@ -9,7 +9,6 @@
             </div>
         </div>
 
-        <!-- ИСПРАВЛЕНИЕ: Показываем день недели всегда, кроме выходного -->
         {% if not is_weekend %}
             <h1 class="main-title">{{ active_day_name }}</h1>
         {% endif %}
@@ -30,17 +29,22 @@
                                             <table id="lessons-table-{{ outer_loop.index0 }}-{{ loop.index0 }}" class="table table-bordered table-striped mb-0">
                                                 <thead>
                                                     <tr>
-                                                        <th style="width: 3%;" class="text-center">№</th>
-                                                        <th style="width: 7%;" class="text-center">Время</th>
-                                                        {% for class_name in grade_data.class_names %}<th>{{ class_name }}</th>{% endfor %}
+                                                        <th style="width: 3%;" class="text-center" rowspan="2">№</th>
+                                                        <th style="width: 7%;" class="text-center" rowspan="2">Время</th>
+                                                        {% for class_name in grade_data.class_names %}
+                                                            <th class="text-center" colspan="2">{{ class_name }}</th>
+                                                        {% endfor %}
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {% for row in grade_data.schedule_rows %}
                                                     <tr data-time-start="{{ row.start_time }}" data-time-end="{{ row.end_time }}">
-                                                        <td class="text-center">{{ row['урок'] }}</td>
-                                                        <td class="text-center">{{ row['время'] }}</td>
-                                                        {% for class_name in grade_data.class_names %}<td>{{ row.предметы.get(class_name, '') }}</td>{% endfor %}
+                                                        <td class="text-center">{{ row.lesson_number }}</td>
+                                                        <td class="text-center">{{ row.display_time }}</td>
+                                                        {% for class_name in grade_data.class_names %}
+                                                            <td class="text-end">{{ row.subjects.get(class_name, {}).get('предмет', '') }}</td>
+                                                            <td class="text-start">{{ row.subjects.get(class_name, {}).get('кабинет', '') }}</td>
+                                                        {% endfor %}
                                                     </tr>
                                                     {% endfor %}
                                                 </tbody>
@@ -140,4 +144,3 @@
         {% endif %}
     </div>
 </div>
-

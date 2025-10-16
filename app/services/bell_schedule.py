@@ -1,19 +1,15 @@
-from datetime import datetime
+# app/services/bell_schedule.py (Финальная, исправленная версия с обратной совместимостью)
+
 from dataclasses import dataclass
 from typing import List, Optional, Dict
 
-
 @dataclass
 class Lesson:
-    """
-    Представляет один урок с порядковым номером, временем начала и окончания.
-    """
+    """Представляет один урок с номером, временем начала и окончания."""
     number: int
     start_time: str
     end_time: str
 
-
-# --- Новая структура хранения расписания ---
 BELLS: Dict[str, Dict[str, List[Lesson]]] = {
     "Обычный день": {
         "1 смена": [
@@ -66,52 +62,39 @@ BELLS: Dict[str, Dict[str, List[Lesson]]] = {
 }
 
 
-def get_lesson_by_number(number: int, shift: str, day_type: str = "Обычный день") -> Optional[Lesson]:
+def get_lesson_by_number(lesson_number: any, shift: str, day_type: str = "Обычный день") -> Optional[Lesson]:
     """
-    Возвращает объект Lesson по его порядковому номеру для указанной смены и типа дня.
+    Основная функция для парсера расписания.
+    Возвращает объект Lesson по его порядковому номеру.
     """
+    try:
+        num = int(float(lesson_number))
+    except (ValueError, TypeError):
+        return None
+
     schedule = BELLS.get(day_type, {}).get(shift)
     if not schedule:
         return None
 
     for lesson in schedule:
-        if lesson.number == number:
+        if lesson.number == num:
             return lesson
 
     return None
 
-
+# --- ИСПРАВЛЕНИЕ: ВОЗВРАЩАЕМ ЭТУ ФУНКЦИЮ НАЗАД ---
 def get_end_time(start_time: str, shift: str, day_type: str = "Обычный день") -> Optional[str]:
     """
-    Безопасно получает время окончания урока по времени начала, смене и типу дня.
-    (Сохранено для обратной совместимости, если где-то используется)
+    Восстановлена для обратной совместимости с парсером консультаций.
+    Находит время окончания по времени начала.
     """
     schedule = BELLS.get(day_type, {}).get(shift)
     if not schedule:
         return None
 
+    # Ищем урок с таким же временем начала
     for lesson in schedule:
         if lesson.start_time == start_time:
             return lesson.end_time
 
     return None
-
-
-def get_default_lesson_duration(shift: str, day_type: str) -> int:
-    """
-    Вычисляет длительность первого урока для данной смены и типа дня.
-    """
-    try:
-        schedule = BELLS.get(day_type, {}).get(shift)
-        if not schedule:
-            return 40  # Значение по умолчанию
-
-        first_lesson = schedule[0]
-        time_format = '%H:%M'
-        start = datetime.strptime(first_lesson.start_time, time_format)
-        end = datetime.strptime(first_lesson.end_time, time_format)
-
-        duration_minutes = (end - start).total_seconds() / 60
-        return int(duration_minutes)
-    except (ValueError, TypeError, IndexError):
-        return 40

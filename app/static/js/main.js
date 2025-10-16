@@ -1,4 +1,4 @@
-// main.js - Final version with unified highlighting logic
+// main.js - Final version with correct keys for portrait mode
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- Константы и переменные ---
@@ -188,13 +188,21 @@ document.addEventListener('DOMContentLoaded', () => {
         daysOrder.forEach(day => {
             const dayData = fullSchedule[day]?.portrait_view[selectedClass];
             html += `<div class="col-12 col-lg-6"><div id="day-${day}" class="schedule-day-card"><div class="schedule-day-header">${day}</div>`;
-            if (dayData && dayData.lessons.some(l => l.предмет !== '—')) {
-                html += '<table class="table table-striped mb-0"><thead><tr><th class="lesson-num-col">№</th><th class="time-col">Время</th><th>Предмет</th></tr></thead><tbody>';
+            if (dayData && dayData.lessons.some(l => l.subject !== '—')) {
+                html += '<table class="table table-striped mb-0"><thead><tr><th class="lesson-num-col">№</th><th class="time-col">Время</th><th>Предмет</th><th class="room-col">Каб.</th></tr></thead><tbody>';
                 dayData.lessons.forEach(lesson => {
-
+                    // --- ИЗМЕНЕНИЕ ЗДЕСЬ: Используем английские имена полей ---
+                    const cabinet = lesson.cabinet || '—';
                     const startTimeAttr = lesson.start_time ? `data-time-start="${lesson.start_time}"` : '';
                     const endTimeAttr = lesson.end_time ? `data-time-end="${lesson.end_time}"` : '';
-                    html += `<tr ${startTimeAttr} ${endTimeAttr}><td class="lesson-num-col">${lesson.урок}</td><td class="time-col">${lesson.время}</td><td>${lesson.предмет}</td></tr>`;
+
+                    html += `<tr ${startTimeAttr} ${endTimeAttr}>
+                                <td class="lesson-num-col">${lesson.lesson_number}</td>
+                                <td class="time-col">${lesson.display_time}</td>
+                                <td>${lesson.subject}</td>
+                                <td class="room-col text-center">${cabinet}</td>
+                             </tr>`;
+                    // --- КОНЕЦ ИЗМЕНЕНИЯ ---
                 });
                 html += '</tbody></table>';
             } else {
@@ -344,21 +352,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // --- ИСПРАВЛЕНИЕ: Собираем все строки консультаций в один массив для корректного поиска ---
         const allConsultationRows = [
             ...document.querySelectorAll('#consultations-table-left tr[data-time-start]'),
             ...document.querySelectorAll('#consultations-table-right tr[data-time-start]')
         ];
 
-        // Подсветка для всех таблиц с уроками
         document.querySelectorAll('table[id^="lessons-table-"]').forEach(table => {
             applyHighlighting(table.querySelectorAll('tr[data-time-start]'));
         });
 
-        // Единая подсветка для всех консультаций
         applyHighlighting(allConsultationRows);
-
-        // Подсветка для портретного режима
         applyHighlighting(document.querySelectorAll(`#day-${activeDayName} tr[data-time-start]`));
         applyHighlighting(document.querySelectorAll('#consultation-list-display tr[data-time-start]'));
     }
@@ -384,4 +387,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
     main();
 });
-

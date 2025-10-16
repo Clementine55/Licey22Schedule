@@ -63,7 +63,6 @@
 @media (min-width: 576px) { .selection-panel { left: 50%; transform: translateX(-50%); width: calc(100% - 2rem); } }
 .selection-panel .btn-toggle { transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out; }
 
-/* ИСПРАВЛЕНИЕ: Применяем новые цвета к кнопкам */
 #show-schedule-btn.btn-primary.active {
     background-color: var(--custom-dark-blue) !important;
     border-color: var(--custom-dark-blue) !important;
@@ -135,10 +134,20 @@
     --bs-table-striped-bg: rgba(255, 255, 255, 0.03);
     --bs-table-border-color: transparent;
 }
-.portrait-view .table td, .portrait-view .table th { vertical-align: middle; }
-.portrait-view .lesson-num-col { width: 10%; text-align: center; }
-.portrait-view .time-col { width: 30%; text-align: center; }
-.portrait-view .room-col { width: 25%; text-align: center; }
+
+/* ======================================================== */
+/* === ИЗМЕНЕНИЕ ЗДЕСЬ: Центрирование всей таблицы === */
+/* ======================================================== */
+.portrait-view .table td, .portrait-view .table th {
+    vertical-align: middle;
+    text-align: center; /* <-- ГЛАВНОЕ ИЗМЕНЕНИЕ: центрируем все ячейки и заголовки */
+}
+
+/* Теперь просто задаем ширину колонок, центрирование уже есть */
+.portrait-view .lesson-num-col { width: 10%; }
+.portrait-view .time-col { width: 25%; }
+.portrait-view .room-col { width: 20%; }
+/* ======================================================== */
 
 .day-selector-container {
     display: flex;
@@ -181,20 +190,12 @@
 /* === CUSTOM: ФИНАЛЬНЫЕ ИСПРАВЛЕНИЯ ДЛЯ ПОРТРЕТНОГО РЕЖИМА === */
 /* ================================================================ */
 
-/* --- Плавный переход для самой панели (для всех экранов) --- */
 .selection-panel {
     transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
 }
 
-/* --- Логика для больших экранов --- */
 @media (min-width: 768px) and (min-height: 800px) and (orientation: portrait) {
-
-    /* 1. Задаем общее вертикальное центрирование для всего, что останется в потоке */
-    .portrait-view {
-        justify-content: center;
-    }
-
-    /* 2. "Вырываем" заголовок из потока и закрепляем наверху */
+    .portrait-view { justify-content: center; }
     .portrait-view .header {
         position: fixed;
         top: 0;
@@ -205,26 +206,16 @@
         z-index: 10;
         margin-bottom: 0;
     }
-
-    /* 3. Говорим контейнеру с иконкой не растягиваться */
     .portrait-view .container {
         flex-grow: 0;
         padding-top: 0;
     }
-
-    /* 4. "Открепляем" панель выбора от низа и возвращаем в поток */
     .selection-panel {
         position: static !important;
         transform: none !important;
         margin-top: 2.5rem;
     }
-
-    /* 5. Прячем ненужный отступ-распорку */
-    .content-spacer {
-        display: none !important;
-    }
-
-    /* 6. Прячем панель ПОСЛЕ выбора класса или при переходе к консультациям */
+    .content-spacer { display: none !important; }
     .portrait-view.schedule-selected .selection-panel,
     .portrait-view.consultation-mode .selection-panel {
         opacity: 0;
