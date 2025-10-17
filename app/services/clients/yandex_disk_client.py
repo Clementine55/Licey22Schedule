@@ -4,7 +4,7 @@ import logging
 import os
 from config import Config
 
-from .schedule_verification import verify_schedule_file
+from app.services.utils.schedule_verification import verify_schedule_file
 
 log = logging.getLogger(__name__)
 

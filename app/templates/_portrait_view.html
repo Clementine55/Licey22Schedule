@@ -1,3 +1,4 @@
+<!-- app/templates/_portrait_view.html -->
 <div class="portrait-view">
     <button id="side-nav-left" class="side-nav-button" title="Сброс выбора">&lsaquo;</button>
     <button id="side-nav-right" class="side-nav-button" title="Сброс выбора">&rsaquo;</button>
@@ -15,10 +16,21 @@
             <div id="schedule-content">
                 <div id="schedule-display" class="is-prompting">
                     <div class="initial-prompt">
-                        <div class="prompt-icon">📅</div>
-                        <h3>Расписание не выбрано</h3>
-                        <p>Используйте панель выбора</p>
-                        <div class="prompt-help"><button id="help-icon" class="help-button" aria-label="Помощь">?</button></div>
+                        <!-- ============================================= -->
+                        <!-- === ИЗМЕНЕНИЕ 1: ДОБАВЛЯЕМ ИНДИКАТОР ЗАГРУЗКИ === -->
+                        <!-- ============================================= -->
+                        <div id="loading-spinner" class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem; display: none;">
+                            <span class="visually-hidden">Загрузка...</span>
+                        </div>
+
+                        <!-- Оборачиваем старый контент, чтобы им можно было управлять -->
+                        <div id="prompt-content">
+                            <div class="prompt-icon">📅</div>
+                            <h3>Расписание не выбрано</h3>
+                            <p>Используйте панель выбора</p>
+                            <div class="prompt-help"><button id="help-icon" class="help-button" aria-label="Помощь">?</button></div>
+                        </div>
+                        <!-- ============================================= -->
                     </div>
                 </div>
             </div>

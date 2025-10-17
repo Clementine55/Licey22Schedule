@@ -1,64 +1,104 @@
-/* =================================== */
-/* === SHARED COMPONENT STYLES === */
-/* =================================== */
+/* app/static/css/components.css */
 
-.current-lesson {
-    background-color: rgba(53, 230, 118, 0.2) !important;
-    border-left: 4px solid #33a15c !important;
-    border-right: 4px solid #33a15c !important;
-}
-.next-lesson {
-    background-color: rgba(137, 132, 219, 0.15) !important;
-    border-left: 4px solid #5d5a8f !important;
-    border-right: 4px solid #5d5a8f !important;
-}
+.current-lesson { background-color: rgba(53, 230, 118, 0.2) !important; border-left: 4px solid #33a15c !important; border-right: 4px solid #33a15c !important; }
+.next-lesson { background-color: rgba(137, 132, 219, 0.15) !important; border-left: 4px solid #5d5a8f !important; border-right: 4px solid #5d5a8f !important; }
 
 .modal-overlay {
-    position: fixed; top: 0;
-    left: 0; width: 100%;
-    height: 100%;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background-color: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1050;
+    display: flex; justify-content: center; align-items: center; z-index: 1050;
     padding: 1rem;
+    /* --- ИЗМЕНЕНИЕ 1: Добавляем плавный переход --- */
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out, visibility 0s 0.3s;
 }
-.modal-content {
-    background-color: #1e293b;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 1rem;
-    padding: 2rem;
-    position: relative;
-    max-width: 500px;
-    width: 100%;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    color: #cbd5e1;
+.modal-overlay.visible {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 0s;
 }
+
+.modal-content { background-color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; padding: 2rem; position: relative; max-width: 500px; width: 100%; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); color: #cbd5e1; }
 .modal-content h2 { font-weight: bold; color: #fff; margin-top: 0; }
 .modal-content hr { border-color: rgba(255, 255, 255, 0.1); margin: 1.5rem 0; }
-.modal-close {
-    position: absolute;
-    top: 1rem;
-    right: 1.5rem;
-    background: none;
-    border: none;
-    color: #94a3b8;
-    font-size: 2.5rem;
-    line-height: 1;
-    cursor: pointer;
-    transition: color 0.2s, transform 0.2s;
-}
+.modal-close { position: absolute; top: 1rem; right: 1.5rem; background: none; border: none; color: #94a3b8; font-size: 2.5rem; line-height: 1; cursor: pointer; transition: color 0.2s, transform 0.2s; }
 .modal-close:hover { color: #fff; transform: scale(1.1); }
-
 .legend { margin-top: 1rem; }
 .legend-item { display: flex; align-items: center; font-size: 1.2rem; margin-bottom: 0.75rem; }
 .legend-color-box { width: 25px; height: 25px; border-radius: 4px; margin-right: 1rem; }
-.legend-color-box.current { background-color: rgba(53, 230, 118, 0.7); }
-.legend-color-box.next { background-color: rgba(137, 132, 219, 0.65); }
+.legend-color-box.current { background-color: rgba(53, 230, 118, 0.6); }
+.legend-color-box.next { background-color: rgba(137, 132, 219, 0.55); }
+.content-spacer { flex-shrink: 0; }
 
-.content-spacer {
-    flex-shrink: 0;
+/* =================================== */
+/* ===      ANIMATION STYLES       === */
+/* =================================== */
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+/* --- ИЗМЕНЕНИЕ 2: Улучшаем анимацию исчезновения --- */
+@keyframes fadeOut {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.95); }
+}
+.animate-fade-out {
+    animation: fadeOut 0.6s ease-in-out both; /* Делаем дольше и плавнее */
+}
+
+/* --- ИЗМЕНЕНИЕ 3: Добавляем классы для анимации стартового экрана --- */
+.animate-prompt-item {
+    opacity: 0; /* Изначально элементы невидимы */
+    animation: fadeInUp 0.6s ease-out both;
+}
+
+.animate-fade-in-up { animation: fadeInUp 0.6s ease-out both; }
+.animate-pop-in { animation: popIn 0.5s ease-out both; }
+
+/* --- Анимации для смены панелей управления --- */
+
+/* Анимация появления */
+.animate-panel-fade-in {
+    animation: panelFadeIn 0.3s ease-out forwards;
+}
+
+@keyframes panelFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Анимация исчезновения */
+.animate-panel-fade-out {
+    animation: panelFadeOut 0.3s ease-in forwards;
+}
+
+@keyframes panelFadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+}
+
+#reset-button {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: scale(1);
+    opacity: 1;
+}
+
+#reset-button.hidden {
+    opacity: 0;
+    transform: scale(0.8);
+    pointer-events: none; /* Чтобы нельзя было нажать на невидимую кнопку */
 }
