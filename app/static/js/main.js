@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
             animatePromptItems();
         }
         updateContentSpacer();
-        setInterval(() => window.location.reload(true), refreshInterval * 1000);
+        setInterval(refreshDataOnTheFly, refreshInterval * 1000)
     }
 
     function setupGlobalListeners() {
@@ -410,6 +410,43 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!timeStr || typeof timeStr !== 'string') return null;
         const match = timeStr.match(/(\d{1,2})[.:](\d{2})/);
         return match ? parseInt(match[1], 10) * 60 + parseInt(match[2], 10) : null;
+    }
+
+    // Добавляем эту новую функцию в твой main.js
+
+    async function refreshDataOnTheFly() {
+        console.log("Фоновое обновление данных...");
+        try {
+            // 1. Запрашиваем свежие данные у API (именно у API!)
+            const [newSchedule, newConsultations] = await Promise.all([
+                fetch(`/api/schedule/${scheduleName}`).then(res => res.json()),
+                fetch(`/api/consultations/${scheduleName}`).then(res => res.json())
+            ]);
+
+            // 2. Обновляем наши глобальные переменные
+            fullSchedule = newSchedule;
+            allConsultations = newConsultations;
+
+            // 3. Перерисовываем только то, что нужно
+            // Нам нужно проверить, какой вид сейчас активен, и обновить именно его.
+
+            const selectedClass = classSelector.value;
+            // Если у пользователя выбран какой-то класс, перерисовываем его расписание
+            if (selectedClass && selectedClass !== '--') {
+                displayWeekSchedule(selectedClass, false); // false - чтобы не было анимации
+            }
+
+            // Перерисовываем данные для консультаций
+            // (здесь можно добавить логику, чтобы обновить только открытый день)
+            setupConsultationUI();
+
+            console.log("Данные успешно обновлены в фоне.");
+
+        } catch (error) {
+            console.error("Ошибка фонового обновления данных:", error);
+            // Здесь можно показать пользователю небольшое уведомление об ошибке,
+            // не ломая всю страницу.
+        }
     }
 
     main();

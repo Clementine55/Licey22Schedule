@@ -6,7 +6,14 @@
     <title>Расписание Лицей 22</title>
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Базовые стили и компоненты, которые нужны всегда -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/side_buttons.css') }}">
+
+    <!-- Стили для разных режимов отображения -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/portrait.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landscape.css') }}">
     <style>
         body {
             min-height: 100vh;

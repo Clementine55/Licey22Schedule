@@ -5,7 +5,6 @@ from typing import List, Dict
 
 # Импортируем наши новые и старые утилиты
 from .common_structs import RawLesson
-from ..utils.excel_reader import load_excel_sheets
 from ..utils.data_validator import is_valid_class_name, normalize_class_name, parse_time_str
 from ..utils.bell_schedule import get_lesson_by_number
 
@@ -13,8 +12,7 @@ log = logging.getLogger(__name__)
 
 
 # Вспомогательные функции, которые нужны именно этому парсеру
-def get_shift_from_time(time_str: str) -> str:
-    # ... (код функции без изменений)
+def _get_shift_from_time(time_str: str) -> str:
     try:
         hour_str = time_str.split('.')[0].split(':')[0]
         hour = int(re.match(r'(\d+)', hour_str).group(1))
@@ -24,7 +22,6 @@ def get_shift_from_time(time_str: str) -> str:
 
 
 def _get_shift_from_sheet_name(sheet_name: str) -> str or None:
-    # ... (код функции без изменений)
     clean_name = str(sheet_name).strip().lower()
     if re.search(r'\(1\s?смена\)', clean_name): return "1 смена"
     if re.search(r'\(2\s?смена\)', clean_name): return "2 смена"
@@ -32,7 +29,6 @@ def _get_shift_from_sheet_name(sheet_name: str) -> str or None:
 
 
 def _get_day_type_from_sheet_name(sheet_name: str) -> str:
-    # ... (код функции без изменений)
     clean_name = str(sheet_name).strip().lower()
     if re.search(r'\(короткий день\)', clean_name) or re.search(r'\(сокр\)', clean_name):
         return "Короткий день"

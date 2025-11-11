@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from typing import Optional
 
 # Импорты утилит
-from ..utils.data_validator import parse_time_str
-from ..utils.bell_schedule import get_end_time
+from app.services.utils.data_validator import parse_time_str
+from app.services.utils.bell_schedule import get_end_time
 
 log = logging.getLogger(__name__)
 

@@ -2,7 +2,7 @@
 
 import logging
 from flask import Blueprint, jsonify
-from config import Config
+
 from .services.clients import time_service
 from .services.core import cache_manager
 

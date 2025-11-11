@@ -4,14 +4,11 @@ import pandas as pd
 import logging
 from typing import Set
 
-from ..utils.excel_reader import load_excel_sheets, filter_sheets_by_keyword
-
-
 log = logging.getLogger(__name__)
 
 
 # --- Эта функция теперь "приватная", для внутреннего использования ---
-def _get_short_days_from_file(xls: pd.ExcelFile) -> Set[str]:
+def get_short_days_from_file(xls: pd.ExcelFile) -> Set[str]:
     """
     Внутренняя функция для чтения дат коротких дней из файла.
     """
@@ -33,13 +30,3 @@ def _get_short_days_from_file(xls: pd.ExcelFile) -> Set[str]:
             log.warning(f"Не удалось распознать дату '{date_val}' на листе '{sheet_name}'.")
 
     return dates
-
-
-# --- ЕДИНСТВЕННАЯ ПУБЛИЧНАЯ ФУНКЦИЯ, КОТОРУЮ МЫ БУДЕМ ВЫЗЫВАТЬ ---
-def is_today_a_short_day(file_path: str, current_date_iso: str) -> bool:
-    """
-    Главная функция сервиса. Читает файл и проверяет, является ли текущий день коротким.
-    Возвращает True, если день короткий, иначе False.
-    """
-    short_days_list = _get_short_days_from_file(file_path)
-    return current_date_iso in short_days_list

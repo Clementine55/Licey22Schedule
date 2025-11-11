@@ -1,4 +1,4 @@
-# app/services/time_service.py (Финальная, корректная версия)
+# app/services/time_service.py
 
 import requests
 import logging
