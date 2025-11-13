@@ -1,7 +1,10 @@
-# app/services/bell_schedule.py (Финальная, исправленная версия с обратной совместимостью)
+# app/services/utils/bell_schedule.py
 
 from dataclasses import dataclass
 from typing import List, Optional, Dict
+
+from .enums import DayType
+
 
 @dataclass
 class Lesson:
@@ -10,8 +13,9 @@ class Lesson:
     start_time: str
     end_time: str
 
-BELLS: Dict[str, Dict[str, List[Lesson]]] = {
-    "Обычный день": {
+
+BELLS: Dict[DayType, Dict[str, List[Lesson]]] = {
+    DayType.NORMAL: {
         "1 смена": [
             Lesson(number=1, start_time="8:30", end_time="9:10"),
             Lesson(number=2, start_time="9:15", end_time="9:55"),
@@ -35,7 +39,7 @@ BELLS: Dict[str, Dict[str, List[Lesson]]] = {
             Lesson(number=7, start_time="18:10", end_time="18:50"),
         ]
     },
-    "Короткий день": {
+    DayType.SHORT: {
         "1 смена": [
             Lesson(number=1, start_time="8:30", end_time="9:00"),
             Lesson(number=2, start_time="9:05", end_time="9:35"),
@@ -62,7 +66,7 @@ BELLS: Dict[str, Dict[str, List[Lesson]]] = {
 }
 
 
-def get_lesson_by_number(lesson_number: any, shift: str, day_type: str = "Обычный день") -> Optional[Lesson]:
+def get_lesson_by_number(lesson_number: any, shift: str, day_type: DayType = DayType.NORMAL) -> Optional[Lesson]:
     """
     Основная функция для парсера расписания.
     Возвращает объект Lesson по его порядковому номеру.
@@ -82,8 +86,8 @@ def get_lesson_by_number(lesson_number: any, shift: str, day_type: str = "Обы
 
     return None
 
-# --- ИСПРАВЛЕНИЕ: ВОЗВРАЩАЕМ ЭТУ ФУНКЦИЮ НАЗАД ---
-def get_end_time(start_time: str, shift: str, day_type: str = "Обычный день") -> Optional[str]:
+
+def get_end_time(start_time: str, shift: str, day_type: DayType = DayType.NORMAL) -> Optional[str]:
     """
     Восстановлена для обратной совместимости с парсером консультаций.
     Находит время окончания по времени начала.
@@ -92,7 +96,6 @@ def get_end_time(start_time: str, shift: str, day_type: str = "Обычный д
     if not schedule:
         return None
 
-    # Ищем урок с таким же временем начала
     for lesson in schedule:
         if lesson.start_time == start_time:
             return lesson.end_time

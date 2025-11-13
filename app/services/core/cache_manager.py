@@ -1,4 +1,4 @@
-# app/services/cache_manager.py
+# app/services/core/cache_manager.py
 
 import json
 import logging
@@ -10,12 +10,15 @@ from threading import Lock
 from config import Config, BASE_DIR
 from app.utils import make_json_serializable
 
+from .backup_manager import create_backup, clean_old_backups, get_latest_backup_path
+
+from app.services.clients.time_service import get_current_day_and_time
+from app.services.clients.yandex_disk_client import update_schedule_file_if_changed, UpdateStatus
+
+
 from app.services.utils.excel_reader import open_excel_file
 from app.services.utils.schedule_comparator import compare_schedules
-
-from app.services.core.backup_manager import create_backup, clean_old_backups, get_latest_backup_path
-
-from app.services.clients.yandex_disk_client import update_schedule_file_if_changed, UpdateStatus
+from app.services.utils.enums import DayType
 
 from app.services.parsers.short_day_parser import get_short_days_from_file
 from app.services.parsers.schedule_parser import parse_schedule
@@ -177,35 +180,34 @@ def _parse_all_data(schedule_name: str) -> dict:
 
     try:
         # Передаем ОТКРЫТЫЙ ФАЙЛ в парсеры
-        raw_lessons_normal = parse_schedule(xls, day_type_override="Обычный день")
-        raw_lessons_short = parse_schedule(xls, day_type_override="Короткий день")
-        consultations = parse_consultations(xls)
         short_days_list = get_short_days_from_file(xls)
+        current_time_info = get_current_day_and_time()
+        is_short_day_today = current_time_info.date_str_iso in short_days_list
+
+        day_type_for_parser = DayType.SHORT if is_short_day_today else DayType.NORMAL
+        log.info(f"Определен тип дня для парсинга: '{day_type_for_parser.name}'")
+
+        raw_lessons = parse_schedule(xls, day_type_override=day_type_for_parser)
+        consultations = parse_consultations(xls)
 
         # 3. Собираем финальные структуры данных, как они были раньше
         schedule_normal = {}
         schedule_short = {}
         days_order = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"]
 
+        schedule = {}
         for day in days_order:
-            daily_lessons_normal = raw_lessons_normal.get(day, [])
-            schedule_normal[day] = {
-                "portrait_view": build_portrait_view(daily_lessons_normal),
-                "landscape_slides": build_landscape_view(daily_lessons_normal)
+            daily_lessons = raw_lessons.get(day, [])
+            schedule[day] = {
+                "portrait_view": build_portrait_view(daily_lessons),
+                "landscape_slides": build_landscape_view(daily_lessons)
             }
 
-            daily_lessons_short = raw_lessons_short.get(day, [])
-            schedule_short[day] = {
-                "portrait_view": build_portrait_view(daily_lessons_short),
-                "landscape_slides": build_landscape_view(daily_lessons_short)
-            }
     finally:
         # Этот блок гарантирует, что файл будет закрыт, даже если при парсинге произойдет ошибка
         xls.close()
 
     return make_json_serializable({
-        "schedule_normal": schedule_normal,
-        "schedule_short": schedule_short,
+        "schedule": schedule,
         "consultations": consultations,
-        "short_days": list(short_days_list)
     })

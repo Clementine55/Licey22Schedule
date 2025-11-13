@@ -1,5 +1,4 @@
-# Этот файл будет содержать всю сложную логику группировки для карусели
-# Мы переносим сюда датаклассы и функцию _process_grade_group из старого парсера
+# app/services/parsers/landscape_builder.py
 
 import re
 from itertools import groupby

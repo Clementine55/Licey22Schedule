@@ -1,4 +1,4 @@
-# app/services/time_service.py
+# app/services/clients/time_service.py
 
 import requests
 import logging
@@ -6,7 +6,9 @@ from datetime import datetime, timedelta, time
 from config import Config
 from dataclasses import dataclass
 
+
 log = logging.getLogger(__name__)
+
 
 DAYS_RU = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"]
 MONTHS_RU = [

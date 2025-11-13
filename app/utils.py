@@ -1,7 +1,6 @@
 # app/utils.py
 
 from datetime import time as time_obj
-# Убедитесь, что эти импорты добавлены
 from dataclasses import is_dataclass, asdict
 
 

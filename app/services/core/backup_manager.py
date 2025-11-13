@@ -7,6 +7,7 @@ import re
 import shutil
 from config import Config
 
+
 log = logging.getLogger(__name__)
 
 
@@ -53,6 +54,10 @@ def clean_old_backups(schedule_name: str, base_data_dir: str, keep_days: int = N
     log.info(f"Начинаю очистку бэкапов в '{backup_dir}'. Удаляю файлы старше {keep_days} дней.")
 
     for filename in os.listdir(backup_dir):
+
+        if not filename.endswith(".bak"):
+            continue
+
         file_path = os.path.join(backup_dir, filename)
         if os.path.isfile(file_path):
             try:

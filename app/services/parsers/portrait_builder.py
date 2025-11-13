@@ -1,5 +1,8 @@
+# app/services/parsers/portrait_builder.py
+
 from typing import List, Dict, Any
 from itertools import groupby
+
 from .common_structs import RawLesson
 
 

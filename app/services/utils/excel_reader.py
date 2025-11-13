@@ -4,7 +4,9 @@ import pandas as pd
 import logging
 from typing import Optional
 
+
 log = logging.getLogger(__name__)
+
 
 def open_excel_file(file_path: str) -> Optional[pd.ExcelFile]:
     """

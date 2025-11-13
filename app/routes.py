@@ -32,10 +32,8 @@ def index(schedule_name):
                                logo_path=Config.LOGO_FILE_PATH), 500
 
     time_info = time_service.get_current_day_and_time()
-    short_days = all_data.get("short_days", [])
-    is_short_day = time_info.date_str_iso in short_days
 
-    full_schedule = all_data.get("schedule_short") if is_short_day else all_data.get("schedule_normal")
+    full_schedule = all_data.get("schedule")
     all_consultations = all_data.get("consultations")
 
     if not full_schedule or not all_consultations:

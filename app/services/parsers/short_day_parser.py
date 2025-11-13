@@ -1,13 +1,13 @@
-# app/services/short_day_parser.py (Финальная, объединенная версия)
+# app/services/parsers/short_day_parser.py
 
 import pandas as pd
 import logging
 from typing import Set
 
+
 log = logging.getLogger(__name__)
 
 
-# --- Эта функция теперь "приватная", для внутреннего использования ---
 def get_short_days_from_file(xls: pd.ExcelFile) -> Set[str]:
     """
     Внутренняя функция для чтения дат коротких дней из файла.
@@ -15,7 +15,6 @@ def get_short_days_from_file(xls: pd.ExcelFile) -> Set[str]:
 
     sheet_name = next((s for s in xls.sheet_names if 'сокращ' in s.lower()), None)
     df = pd.read_excel(xls, sheet_name=sheet_name)
-    # --> КОНЕЦ ЗАМЕНЫ
 
     if 'Дата' not in df.columns:
         log.warning(f"На листе '{sheet_name}' не найдена колонка 'Дата'.")

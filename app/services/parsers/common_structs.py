@@ -1,3 +1,5 @@
+# app/services/parsers/common_struct.py
+
 from dataclasses import dataclass
 from typing import Optional
 from datetime import time

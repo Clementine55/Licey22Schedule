@@ -1,8 +1,9 @@
-# app/services/view_filter.py
+# app/services/core/view_filter.py
 
 import logging
 from datetime import datetime, timedelta, time as time_obj
 from config import Config
+
 
 log = logging.getLogger(__name__)
 

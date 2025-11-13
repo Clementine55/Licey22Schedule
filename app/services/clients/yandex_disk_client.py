@@ -11,6 +11,7 @@ from typing import Optional
 from config import Config
 from app.services.utils.schedule_verification import verify_schedule_file
 
+
 log = logging.getLogger(__name__)
 
 

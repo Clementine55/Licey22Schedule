@@ -3,9 +3,12 @@
 import logging
 from typing import Dict, Any, Tuple
 
-# --- ИЗМЕНЕНИЕ: Убираем лишние импорты, добавляем нужные ---
-from app.services.parsers import schedule_parser
-from app.services.utils import excel_reader
+from .excel_reader import open_excel_file
+from .enums import DayType
+
+from app.services.parsers.schedule_parser import parse_schedule
+
+
 
 log = logging.getLogger(__name__)
 
@@ -18,14 +21,14 @@ def _get_lessons_as_dict(file_path: str) -> Dict[Tuple[str, str, Any], Dict[str,
     flat_lessons = {}
 
     # --- ИЗМЕНЕНИЕ: Используем наш excel_reader ---
-    xls = excel_reader.open_excel_file(file_path)
+    xls = open_excel_file(file_path)
     if not xls:
         # excel_reader уже залогировал ошибку, здесь просто выходим
         return {}
 
     try:
         # Используем наш основной парсер для получения "сырых" данных
-        raw_lessons_by_day = schedule_parser.parse_schedule(xls, day_type_override="Обычный день")
+        raw_lessons_by_day = parse_schedule(xls, day_type_override=DayType.NORMAL)
 
         for day_name, lessons in raw_lessons_by_day.items():
             for lesson in lessons:

@@ -52,8 +52,8 @@ class Config:
     CAROUSEL_INTERVAL = int(os.getenv('CAROUSEL_INTERVAL', 7))
     SHOW_BEFORE_START_MIN = int(os.getenv('SHOW_BEFORE_START_MIN', 75))
     SHOW_AFTER_END_MIN = int(os.getenv('SHOW_AFTER_END_MIN', 30))
-    REGION_TIMEDELTA = int(os.getenv('REGION_TIMEDELTA', 3))
-    BACKUP_RETENTION_DAYS = int(os.getenv('BACKUP_RETENTION_DAYS', 30))
+    REGION_TIMEDELTA = int(os.getenv('REGION_TIMEDELTA', 17))
+    BACKUP_RETENTION_DAYS = int(os.getenv('BACKUP_RETENTION_DAYS', 7))
 
     # Проверка, что ключевые переменные загрузились
     if not YANDEX_TOKEN:

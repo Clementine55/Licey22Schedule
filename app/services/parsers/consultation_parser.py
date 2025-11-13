@@ -1,12 +1,15 @@
+# app/services/parsers/consultation_parser.py
+
 import pandas as pd
 import logging
 import re
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Dict, Tuple, List
 
-# Импорты утилит
 from app.services.utils.data_validator import parse_time_str
 from app.services.utils.bell_schedule import get_end_time
+from app.services.utils.enums import DayType
+
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +35,7 @@ def _parse_consultation_time_for_sort(time_str: str) -> tuple:
     return (99, 99)
 
 
-def _process_time_string(time_str: str, shift: str, day_type: str) -> list:
+def _process_time_string(time_str: str, shift: str, day_type: Optional[DayType]) -> list:
     if not isinstance(time_str, str): return []
     consultations = []
     # Пробуем найти явный диапазон "ЧЧ:ММ-ЧЧ:ММ"
@@ -61,54 +64,68 @@ def _process_time_string(time_str: str, shift: str, day_type: str) -> list:
     return []
 
 
-# ------------------------------------------------------------------
-
-def parse_consultations(xls: pd.ExcelFile, day_type_override: str = None):
+def _map_column_indices(df_columns) -> Tuple[Optional[int], Dict[str, Tuple[int, int]]]:
+    """Находит индекс колонки учителя и сопоставляет индексы для каждого дня недели."""
     days_map = {
         "понедельник": "Понедельник", "вторник": "Вторник", "среда": "Среда",
         "четверг": "Четверг", "пятница": "Пятница", "суббота": "Суббота"
     }
-    consultations_by_day = {day: [] for day in days_map.values()}
 
-    try:
-        cons_sheets = [s for s in xls.sheet_names if 'консультац' in s.lower()]
+    teacher_col_idx = None
+    day_col_indices = {}
 
-        if not cons_sheets:
-            return consultations_by_day
+    # Ищем колонку учителя
+    for i, col_tuple in enumerate(df_columns):
+        full_col_name = " ".join(map(str, col_tuple)).lower()
+        if 'учитель' in full_col_name or 'фио' in full_col_name:
+            teacher_col_idx = i
+            break
 
-        for sheet_name in cons_sheets:
-            log.info(f"Парсинг консультаций с листа: '{sheet_name}'")
-            # 2. Читаем лист с header=[0, 1] (двухуровневый заголовок)
+    # Ищем колонки для дней недели
+    for day_key, day_name in days_map.items():
+        time_idx, room_idx = -1, -1
+        for i, col_tuple in enumerate(df_columns):
+            col_str = " ".join(map(str, col_tuple)).lower()
+            if day_key in col_str:
+                if 'время' in col_str:
+                    time_idx = i
+                elif 'каб' in col_str:
+                    room_idx = i
+        if time_idx != -1:
+            day_col_indices[day_name] = (time_idx, room_idx)
+
+    return teacher_col_idx, day_col_indices
+
+
+# --- ГЛАВНАЯ ФУНКЦИЯ, ТЕПЕРЬ ОНА ЧИЩЕ ---
+
+def parse_consultations(xls: pd.ExcelFile, day_type_override: Optional[DayType] = None) -> Dict[
+    str, List[Consultation]]:
+    """
+    Парсит все листы с консультациями в Excel-файле и возвращает единый словарь.
+    """
+    days_order = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"]
+    consultations_by_day = {day: [] for day in days_order}
+
+    log.info("Запуск парсера консультаций...")
+    for sheet_name in xls.sheet_names:
+        # 1. Проверяем, подходит ли лист для парсинга
+        if 'консультац' not in sheet_name.lower():
+            log.info(f"  [✗] Пропуск листа '{sheet_name}': не является листом консультаций.")
+            continue
+
+        try:
             df = pd.read_excel(xls, sheet_name=sheet_name, header=[0, 1])
 
-            # 3. Ищем колонку учителя. col - это кортеж ('Учитель', 'Unnamed...')
-            teacher_col_idx = -1
-            for i, col_tuple in enumerate(df.columns):
-                # Собираем все части заголовка в одну строку для поиска
-                full_col_name = " ".join(map(str, col_tuple)).lower()
-                if 'учитель' in full_col_name or 'фио' in full_col_name:
-                    teacher_col_idx = i
-                    break
+            teacher_col_idx, day_col_indices = _map_column_indices(df.columns)
 
-            if teacher_col_idx == -1:
-                log.warning(f"Колонка 'Учитель' не найдена на листе '{sheet_name}'.")
+            if teacher_col_idx is None:
+                log.warning(f"  [✗] Пропуск листа '{sheet_name}': не найдена колонка 'Учитель'/'ФИО'.")
                 continue
 
-            # 4. Составляем карту индексов колонок: { "понедельник": (idx_time, idx_room), ... }
-            day_col_indices = {}
-            for day_key in days_map.keys():
-                time_idx, room_idx = -1, -1
-                for i, col_tuple in enumerate(df.columns):
-                    col_str = " ".join(map(str, col_tuple)).lower()
-                    if day_key in col_str:
-                        if 'время' in col_str:
-                            time_idx = i
-                        elif 'каб' in col_str:
-                            room_idx = i
-                if time_idx != -1:
-                    day_col_indices[days_map[day_key]] = (time_idx, room_idx)
+            log.info(f"  [✓] Анализ листа '{sheet_name}'...")
 
-            # 5. Итерируемся по строкам и достаем данные по индексам
+            # 2. Итерируемся по строкам и извлекаем данные
             for row_idx in range(len(df)):
                 teacher = str(df.iloc[row_idx, teacher_col_idx]).strip()
                 if not teacher or teacher == 'nan': continue
@@ -117,20 +134,11 @@ def parse_consultations(xls: pd.ExcelFile, day_type_override: str = None):
                     time_val = str(df.iloc[row_idx, time_idx]).strip()
                     if not time_val or time_val == 'nan': continue
 
-                    room_val = '—'
-                    if room_idx != -1:
-                        r_val = str(df.iloc[row_idx, room_idx]).strip()
-                        if r_val and r_val != 'nan':
-                            room_val = r_val.replace('.0', '')  # Убираем .0 от чисел
+                    room_val = str(df.iloc[row_idx, room_idx]).strip().replace('.0', '') if room_idx != -1 else '—'
+                    if not room_val or room_val == 'nan': room_val = '—'
 
-                    # Определяем смену и парсим время
-                    shift = "1 смена"  # Дефолт
-                    if "1смена" in sheet_name.lower().replace(" ", ""):
-                        shift = "1 смена"
-                    elif "2смена" in sheet_name.lower().replace(" ", ""):
-                        shift = "2 смена"
-
-                    day_type = day_type_override or "Обычный день"
+                    shift = "2 смена" if "2смена" in sheet_name.lower().replace(" ", "") else "1 смена"
+                    day_type = day_type_override or DayType.NORMAL
 
                     processed_times = _process_time_string(time_val, shift, day_type)
                     for time_data in processed_times:
@@ -141,12 +149,12 @@ def parse_consultations(xls: pd.ExcelFile, day_type_override: str = None):
                             start_time=time_data['start_time'],
                             end_time=time_data['end_time']
                         ))
+        except Exception as e:
+            log.error(f"  [!] Произошла ошибка при парсинге листа '{sheet_name}': {e}", exc_info=True)
 
-    except Exception as e:
-        log.error(f"Ошибка парсинга консультаций: {e}", exc_info=True)
-
-    # Сортировка
+    # 3. Сортировка результатов
     for day in consultations_by_day:
         consultations_by_day[day].sort(key=lambda x: _parse_consultation_time_for_sort(x.time))
 
+    log.info("Парсер консультаций завершил работу.")
     return consultations_by_day
