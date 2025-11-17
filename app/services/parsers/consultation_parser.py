@@ -8,7 +8,7 @@ from typing import Optional, Dict, Tuple, List
 
 from app.services.utils.data_validator import parse_time_str
 from app.services.utils.bell_schedule import get_end_time
-from app.services.utils.enums import DayType
+from app.services.utils.enums import DayType, Shift
 
 
 log = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ def _parse_consultation_time_for_sort(time_str: str) -> tuple:
     return (99, 99)
 
 
-def _process_time_string(time_str: str, shift: str, day_type: Optional[DayType]) -> list:
+def _process_time_string(time_str: str, shift: Shift, day_type: Optional[DayType]) -> list:
     if not isinstance(time_str, str): return []
     consultations = []
     # Пробуем найти явный диапазон "ЧЧ:ММ-ЧЧ:ММ"
@@ -55,7 +55,7 @@ def _process_time_string(time_str: str, shift: str, day_type: Optional[DayType])
         # Определяем урок по времени, чтобы найти конец
         try:
             h = int(start_str.split(':')[0])
-            calc_shift = "2 смена" if h >= 13 else shift  # Корректируем смену по времени
+            calc_shift = Shift.SECOND if h >= 13 else shift
             end_str = get_end_time(start_str, calc_shift, day_type)
             if end_str:
                 return [{'original_time': time_str, 'start_time': start_str, 'end_time': end_str}]
@@ -137,7 +137,7 @@ def parse_consultations(xls: pd.ExcelFile, day_type_override: Optional[DayType] 
                     room_val = str(df.iloc[row_idx, room_idx]).strip().replace('.0', '') if room_idx != -1 else '—'
                     if not room_val or room_val == 'nan': room_val = '—'
 
-                    shift = "2 смена" if "2смена" in sheet_name.lower().replace(" ", "") else "1 смена"
+                    shift = Shift.SECOND if "2смена" in sheet_name.lower().replace(" ", "") else Shift.FIRST
                     day_type = day_type_override or DayType.NORMAL
 
                     processed_times = _process_time_string(time_val, shift, day_type)

@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from typing import List, Optional, Dict
 
-from .enums import DayType
+from .enums import DayType, Shift
 
 
 @dataclass
@@ -14,9 +14,9 @@ class Lesson:
     end_time: str
 
 
-BELLS: Dict[DayType, Dict[str, List[Lesson]]] = {
+BELLS: Dict[DayType, Dict[Shift, List[Lesson]]] = {
     DayType.NORMAL: {
-        "1 смена": [
+        Shift.FIRST: [
             Lesson(number=1, start_time="8:30", end_time="9:10"),
             Lesson(number=2, start_time="9:15", end_time="9:55"),
             Lesson(number=3, start_time="10:05", end_time="10:45"),
@@ -28,7 +28,7 @@ BELLS: Dict[DayType, Dict[str, List[Lesson]]] = {
             Lesson(number=9, start_time="15:05", end_time="15:45"),
             Lesson(number=10, start_time="15:55", end_time="16:35")
         ],
-        "2 смена": [
+        Shift.SECOND: [
             Lesson(number=0, start_time="12:35", end_time="13:15"),
             Lesson(number=1, start_time="13:25", end_time="14:05"),
             Lesson(number=2, start_time="14:15", end_time="14:55"),
@@ -40,7 +40,7 @@ BELLS: Dict[DayType, Dict[str, List[Lesson]]] = {
         ]
     },
     DayType.SHORT: {
-        "1 смена": [
+        Shift.FIRST: [
             Lesson(number=1, start_time="8:30", end_time="9:00"),
             Lesson(number=2, start_time="9:05", end_time="9:35"),
             Lesson(number=3, start_time="9:45", end_time="10:15"),
@@ -52,7 +52,7 @@ BELLS: Dict[DayType, Dict[str, List[Lesson]]] = {
             Lesson(number=9, start_time="13:35", end_time="14:05"),
             Lesson(number=10, start_time="14:15", end_time="14:45")
         ],
-        "2 смена": [
+        Shift.SECOND: [
             Lesson(number=0, start_time="11:05", end_time="11:35"),
             Lesson(number=1, start_time="11:40", end_time="12:10"),
             Lesson(number=2, start_time="12:15", end_time="12:45"),
@@ -66,7 +66,7 @@ BELLS: Dict[DayType, Dict[str, List[Lesson]]] = {
 }
 
 
-def get_lesson_by_number(lesson_number: any, shift: str, day_type: DayType = DayType.NORMAL) -> Optional[Lesson]:
+def get_lesson_by_number(lesson_number: any, shift: Shift, day_type: DayType = DayType.NORMAL) -> Optional[Lesson]:
     """
     Основная функция для парсера расписания.
     Возвращает объект Lesson по его порядковому номеру.
@@ -87,7 +87,7 @@ def get_lesson_by_number(lesson_number: any, shift: str, day_type: DayType = Day
     return None
 
 
-def get_end_time(start_time: str, shift: str, day_type: DayType = DayType.NORMAL) -> Optional[str]:
+def get_end_time(start_time: str, shift: Shift, day_type: DayType = DayType.NORMAL) -> Optional[str]:
     """
     Восстановлена для обратной совместимости с парсером консультаций.
     Находит время окончания по времени начала.

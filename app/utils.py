@@ -2,6 +2,7 @@
 
 from datetime import time as time_obj
 from dataclasses import is_dataclass, asdict
+from enum import Enum
 
 
 def make_json_serializable(data):
@@ -9,6 +10,9 @@ def make_json_serializable(data):
     Рекурсивно преобразует объекты, которые не сериализуются в JSON,
     в подходящий формат (строки, словари, списки).
     """
+    if isinstance(data, Enum):
+        return data.value  # <-- Превращаем Shift.FIRST в "1 смена"
+
     # Этот блок - ключ к решению проблемы. Он должен быть первым.
     if is_dataclass(data):
         # Превращаем дата-класс в словарь и снова пропускаем через эту же функцию,

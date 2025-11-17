@@ -9,5 +9,5 @@ class DayType(Enum):
 
 class Shift(Enum):
     """Определяет тип смены (первая или вторая)."""
-    FIRST = auto()
-    SECOND = auto()
+    FIRST = "1 смена"
+    SECOND = "2 смена"

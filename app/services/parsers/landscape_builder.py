@@ -8,6 +8,8 @@ from typing import List, Dict, Optional, Any
 
 from .common_structs import RawLesson
 
+from app.services.utils.enums import Shift
+
 
 # --- Структуры данных, специфичные для ландшафтного режима ---
 @dataclass
@@ -29,7 +31,7 @@ class LandscapeGradeGroup:
 
 
 # --- Вспомогательная функция, перенесенная из старого парсера ---
-def _process_grade_group(grade_classes: Dict[str, List[RawLesson]], grade_num: int, shift_name: str,
+def _process_grade_group(grade_classes: Dict[str, List[RawLesson]], grade_num: int, shift: Shift,
                          part_info: str = "") -> Optional[LandscapeGradeGroup]:
     grade_class_names = sorted(grade_classes.keys())
     all_lessons = [lesson for lessons in grade_classes.values() for lesson in lessons if lesson.subject != '—']
@@ -57,7 +59,7 @@ def _process_grade_group(grade_classes: Dict[str, List[RawLesson]], grade_num: i
         ))
 
     return LandscapeGradeGroup(
-        grade_key=f"{grade_num}-е классы ({shift_name}){part_info}",
+        grade_key=f"{grade_num}-е классы ({shift.value}){part_info}",
         class_names=grade_class_names, schedule_rows=schedule_rows,
         first_lesson_time=min(l.start_time_obj for l in valid_lessons),
         last_lesson_end_time=last_lesson_end_time_obj
@@ -72,8 +74,13 @@ def build_landscape_view(daily_lessons: List[RawLesson]) -> List[List[Dict[str, 
     temp_landscape_view = {}
 
     # Группируем уроки по сменам
-    get_shift = lambda l: l.shift
-    for shift_name, lessons_in_shift_iter in groupby(sorted(daily_lessons, key=get_shift), key=get_shift):
+    sort_key = lambda l: l.shift.name
+    group_key = lambda l: l.shift
+
+    sorted_by_shift = sorted(daily_lessons, key=sort_key)
+
+    for shift_obj, lessons_in_shift_iter in groupby(sorted_by_shift, key=group_key):
+        # Теперь shift_obj - это Shift.FIRST или Shift.SECOND
         lessons_in_shift = list(lessons_in_shift_iter)
 
         # Группируем уроки в смене по классам (10, 11 и т.д.)
@@ -89,14 +96,14 @@ def build_landscape_view(daily_lessons: List[RawLesson]) -> List[List[Dict[str, 
 
             num_classes = len(lessons_by_class_name)
             if num_classes <= 6:
-                group = _process_grade_group(lessons_by_class_name, grade_num, shift_name)
+                group = _process_grade_group(lessons_by_class_name, grade_num, shift_obj)
                 if group: temp_landscape_view[group.grade_key] = group
             else:  # Разбиваем большие параллели на 2 части
                 split_point = (num_classes + 1) // 2
                 sorted_items = sorted(lessons_by_class_name.items())
-                group1 = _process_grade_group(dict(sorted_items[:split_point]), grade_num, shift_name, " (1/2)")
+                group1 = _process_grade_group(dict(sorted_items[:split_point]), grade_num, shift_obj, " (1/2)")
                 if group1: temp_landscape_view[group1.grade_key] = group1
-                group2 = _process_grade_group(dict(sorted_items[split_point:]), grade_num, shift_name, " (2/2)")
+                group2 = _process_grade_group(dict(sorted_items[split_point:]), grade_num, shift_obj, " (2/2)")
                 if group2: temp_landscape_view[group2.grade_key] = group2
 
     # Финальная группировка по слайдам (по 2 группы на слайд, если влезает)

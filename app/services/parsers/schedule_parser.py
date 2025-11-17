@@ -9,26 +9,26 @@ from .common_structs import RawLesson
 
 from app.services.utils.data_validator import is_valid_class_name, normalize_class_name, parse_time_str
 from app.services.utils.bell_schedule import get_lesson_by_number
-from app.services.utils.enums import DayType
+from app.services.utils.enums import DayType, Shift
 
 
 log = logging.getLogger(__name__)
 
 
 # Вспомогательные функции, которые нужны именно этому парсеру
-def _get_shift_from_time(time_str: str) -> str:
+def _get_shift_from_time(time_str: str) -> Shift:
     try:
         hour_str = time_str.split('.')[0].split(':')[0]
         hour = int(re.match(r'(\d+)', hour_str).group(1))
-        return "2 смена" if hour >= 12 else "1 смена"
+        return Shift.SECOND if hour >= 12 else Shift.FIRST
     except (ValueError, IndexError, AttributeError):
-        return "1 смена"
+        return Shift.FIRST
 
 
-def _get_shift_from_sheet_name(sheet_name: str) -> str or None:
+def _get_shift_from_sheet_name(sheet_name: str) -> Optional[Shift]:
     clean_name = str(sheet_name).strip().lower()
-    if re.search(r'\(1\s?смена\)', clean_name): return "1 смена"
-    if re.search(r'\(2\s?смена\)', clean_name): return "2 смена"
+    if re.search(r'\(1\s?смена\)', clean_name): return Shift.FIRST
+    if re.search(r'\(2\s?смена\)', clean_name): return Shift.SECOND
     return None
 
 

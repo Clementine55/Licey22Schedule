@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from typing import Optional
 from datetime import time
 
+from app.services.utils.enums import Shift
+
 
 @dataclass
 class RawLesson:
@@ -13,7 +15,7 @@ class RawLesson:
     """
     day_name: str
     class_name: str
-    shift: str
+    shift: Shift
 
     lesson_number: any
     display_time: str  # Время как оно написано в файле, "8.30-9.10"
