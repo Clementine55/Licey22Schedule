@@ -5,9 +5,54 @@
 .portrait-view { position: relative; flex-direction: column; min-height: 100vh; box-sizing: border-box; padding-top: calc(1.5rem + env(safe-area-inset-top)); padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); transition: padding-top 0.4s ease-in-out; }
 .portrait-view .container { flex-grow: 1; display: flex; flex-direction: column; width: 100%; padding-left: 1rem; padding-right: 1rem; }
 .content-wrapper { flex-grow: 1; display: flex; flex-direction: column; }
-.portrait-view .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding: 0 1rem; transition: all 0.4s ease-in-out; }
-.portrait-view .logo-img { display: block; max-width: 240px; height: auto; opacity: 0.9; }
-.portrait-view .header-info { display: flex; flex-direction: column; align-items: flex-end; font-weight: bold; font-size: 1.8rem; line-height: 1.4; color: #cbd5e1; }
+
+/* 1. Настройки контейнера хедера (Позиция и Контент) */
+.portrait-view .header {
+    /* Расположение элементов */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+
+    /* Важно для позиционирования фона */
+    z-index: 100;
+
+    /* Убираем фон и блюр отсюда, переносим в ::before */
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+
+    transition: all 0.4s ease-in-out;
+}
+
+/* 2. Настройки фона "матовое стекло" с фейдом (Виртуальный слой) */
+.portrait-view .header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100% + 3rem);
+
+    /* Чтобы фон был ПОД текстом */
+    z-index: -1;
+
+    /* Сам эффект стекла */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    /* --- МАГИЯ ФЕЙДА (Градиентная маска) --- */
+    /* Сверху (black) полностью видно, к низу (transparent) исчезает */
+    /* 85% высоты - четко, последние 15% - плавное исчезновение */
+    -webkit-mask-image: linear-gradient(to bottom, black 75%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 75%, transparent 100%);
+
+    /* Блокируем события мыши на свисающей части, чтобы можно было кликать на расписание под ней */
+    pointer-events: none;
+}
+
+.portrait-view .logo-img { display: block; max-width: 280px; height: auto; opacity: 0.9; }
+.portrait-view .header-info { display: flex; flex-direction: column; align-items: flex-end; font-weight: bold; font-size: 2.4rem; line-height: 1.4; color: #cbd5e1; }
 .selection-panel { position: fixed; bottom: calc(0.5rem + env(safe-area-inset-bottom)); left: calc(1rem + env(safe-area-inset-left)); right: calc(1rem + env(safe-area-inset-right)); z-index: 1010; background-color: rgba(20, 30, 48, 0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 0.9rem 1.5rem; border-radius: 1.5rem; box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.2); max-width: 650px; margin: 0 auto; animation: slideInUp 0.7s ease-out 0.3s both; }
 @media (min-width: 576px) { .selection-panel { left: 50%; transform: translateX(-50%); width: calc(100% - 2rem); } }
 .selection-panel .btn-toggle { transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out; }
@@ -50,8 +95,36 @@
         /* Уменьшаем верхний отступ, когда расписание показано, оставляя только безопасную зону */
         padding-top: calc(0.5rem + env(safe-area-inset-top));
     }
+
+    .portrait-view .header::before {
+        /* Отключаем размытие */
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+
+        /* Убираем фон (делаем прозрачным), так как на мобильном */
+        /* шапка обычно не наезжает на контент, а скроллится вместе с ним */
+        background-color: transparent !important;
+
+        /* Убираем нижнюю линию */
+        border-bottom: none !important;
+    }
 }
 .selection-panel { transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out; }
-@media (min-width: 768px) and (min-height: 800px) and (orientation: portrait) { .portrait-view { justify-content: center; } .portrait-view .header { position: fixed; top: 0; left: 0; width: 100%; box-sizing: border-box; padding: calc(1.5rem + env(safe-area-inset-top)) 2rem 1.5rem 2rem; z-index: 10; margin-bottom: 0; } .portrait-view .container { flex-grow: 0; padding-top: 0; } .selection-panel { position: static !important; transform: none !important; margin-top: 2.5rem; } .content-spacer { display: none !important; } .portrait-view.schedule-selected .selection-panel, .portrait-view.consultation-mode .selection-panel { opacity: 0; transform: scale(0.9) !important; pointer-events: none; } }
+@media (min-width: 768px) and (min-height: 800px) and (orientation: portrait) {
+    .portrait-view { justify-content: center; }
+    .portrait-view .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        box-sizing: border-box;
+        padding: calc(2.0rem + env(safe-area-inset-top)) 5rem 2rem 5rem;
+        z-index: 10;
+        margin-bottom: 0; }
+
+        .portrait-view .container { flex-grow: 0; padding-top: 11rem; }
+        .selection-panel { position: static !important; transform: none !important; margin-top: 2.5rem; }
+        .content-spacer { display: none !important; }
+        .portrait-view.schedule-selected .selection-panel, .portrait-view.consultation-mode .selection-panel { opacity: 0; transform: scale(0.9) !important; pointer-events: none; } }
 @media (max-width: 576px) and (orientation: portrait) { html { font-size: 14px; } .portrait-view .header { justify-content: center; } .portrait-view .header-info { display: none; } .selection-panel .form-label { font-size: 0.8rem; } .selection-panel .form-select, .selection-panel .btn { font-size: 0.9rem; padding-top: 0.6rem; padding-bottom: 0.6rem; } }
 

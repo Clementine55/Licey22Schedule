@@ -16,6 +16,16 @@ log = logging.getLogger(__name__)
 
 
 # Вспомогательные функции, которые нужны именно этому парсеру
+def _format_lesson_number(val: any) -> str:
+    try:
+        float_val = float(val)
+        if float_val.is_integer():
+            return str(int(float_val))
+        return str(val)
+    except (ValueError, TypeError):
+        return str(val).split('.')[0]
+
+
 def _get_shift_from_time(time_str: str) -> Shift:
     try:
         hour_str = time_str.split('.')[0].split(':')[0]
@@ -121,7 +131,7 @@ def parse_schedule(xls: pd.ExcelFile, day_type_override: Optional[DayType] = Non
 
                     raw_lessons_by_day[day_name].append(RawLesson(
                         day_name=day_name, class_name=class_name, shift=actual_shift,
-                        lesson_number=lesson_info['урок'], display_time=display_t, subject=subject,
+                        lesson_number=_format_lesson_number(lesson_info['урок']), display_time=display_t, subject=subject,
                         cabinet=cabinet, start_time=start_t, end_time=end_t,
                         start_time_obj=parse_time_str(start_t), end_time_obj=parse_time_str(end_t)
                     ))

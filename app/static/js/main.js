@@ -359,14 +359,37 @@ document.addEventListener('DOMContentLoaded', () => {
         setInterval(updateClock, 1000);
     }
 
+    let loadedDay = null;
+
     function updateClock() {
+        // Создаем объект времени с учетом разницы с сервером
         const correctedDate = new Date(new Date().getTime() + timeDifference);
+
+        // --- НОВЫЙ БЛОК: ПРОВЕРКА СМЕНЫ ДНЯ ---
+        const currentDayOfWeek = correctedDate.getDay(); // Получаем номер дня (0 - Вс, 1 - Пн...)
+
+        // Если это первый запуск функции, запоминаем текущий день
+        if (loadedDay === null) {
+            loadedDay = currentDayOfWeek;
+        }
+
+        // Если сохраненный день не совпадает с текущим (например, была Пятница, стала Суббота)
+        if (currentDayOfWeek !== loadedDay) {
+            console.log("Наступила полночь! Перезагружаю страницу для обновления расписания...");
+            window.location.reload(); // <--- ЖЕСТКАЯ ПЕРЕЗАГРУЗКА
+            return; // Прерываем функцию, дальше обновлять часы нет смысла
+        }
+        // --------------------------------------
+
         hours = correctedDate.getHours();
         minutes = correctedDate.getMinutes();
         seconds = correctedDate.getSeconds();
+
         const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
         if (timePortrait) timePortrait.textContent = timeString;
         if (timeLandscape) timeLandscape.textContent = timeString;
+
         highlightCurrentItems();
     }
 

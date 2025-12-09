@@ -181,4 +181,5 @@ async def main() -> None:
     logging.info("Запуск Telegram-бота...")
     await set_main_menu(bot)
     await bot.delete_webhook(drop_pending_updates=True)
+    await bot.send_message(chat_id=Config.TELEGRAM_ADMIN_IDS[0], text="сасамба")
     await dp.start_polling(bot)
