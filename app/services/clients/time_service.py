@@ -6,9 +6,7 @@ from datetime import datetime, timedelta, time
 from config import Config
 from dataclasses import dataclass
 
-
 log = logging.getLogger(__name__)
-
 
 DAYS_RU = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"]
 MONTHS_RU = [
@@ -17,36 +15,43 @@ MONTHS_RU = [
 ]
 TIME_OFFSET = timedelta(hours=Config.REGION_TIMEDELTA)
 
+_time_offset_cache = None
 
 @dataclass(frozen=True)
 class CurrentTimeInfo:
-    """Структура для хранения информации о текущем времени."""
     day_name: str
-    date_str_display: str  # '17 октября 2025 г.' - для показа на экране
-    date_str_iso: str  # '2025-10-17' - для сравнений и логики
+    date_str_display: str  
+    date_str_iso: str  
     time_obj: time
 
-
 def get_current_day_and_time() -> CurrentTimeInfo:
-    """Определяет текущий день недели, дату и время."""
-    try:
-        response = requests.head("https://yandex.com/time/sync.json", timeout=5)
-        response.raise_for_status()
-        gmt_time_str = response.headers.get('Date')
-        if not gmt_time_str: raise ValueError("Header 'Date' is missing")
-        gmt_datetime = datetime.strptime(gmt_time_str, '%a, %d %b %Y %H:%M:%S GMT')
-        local_datetime = gmt_datetime + TIME_OFFSET
-        log.info("Время успешно получено от Яндекса.")
-    except (requests.exceptions.RequestException, KeyError, ValueError) as e:
-        log.warning(f"Не удалось получить время от Яндекса ({e}). Используется системное время.")
+    global _time_offset_cache
+
+    if _time_offset_cache is None:
+        try:
+            # Жестко ограничиваем таймаут (1 сек на коннект, 1 сек на чтение)
+            response = requests.head("https://yandex.com/time/sync.json", timeout=(1.0, 1.0))
+            response.raise_for_status()
+            gmt_time_str = response.headers.get('Date')
+            if not gmt_time_str: raise ValueError("Header 'Date' is missing")
+            gmt_datetime = datetime.strptime(gmt_time_str, '%a, %d %b %Y %H:%M:%S GMT')
+            
+            _time_offset_cache = gmt_datetime - datetime.utcnow()
+            log.info("Время успешно синхронизировано с Яндексом.")
+        except Exception as e:
+            log.warning("Сеть недоступна или заблокирована. Переход на локальное системное время.")
+            _time_offset_cache = "USE_SYSTEM_TIME"
+
+    # Если Яндекса нет, берем время с твоего Windows (или сервера)
+    if _time_offset_cache == "USE_SYSTEM_TIME":
         local_datetime = datetime.now()
+    else:
+        local_datetime = datetime.utcnow() + _time_offset_cache + TIME_OFFSET
 
     day_name = DAYS_RU[local_datetime.weekday()]
     date_str_display = f"{local_datetime.day} {MONTHS_RU[local_datetime.month - 1]} {local_datetime.year} г."
     date_str_iso = local_datetime.strftime('%Y-%m-%d')
     current_time_obj = local_datetime.time()
-
-    log.info(f"Текущее время: {day_name}, {local_datetime.strftime('%H:%M:%S')}")
 
     return CurrentTimeInfo(
         day_name=day_name,
